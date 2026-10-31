@@ -1,0 +1,8 @@
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0   # ASGI server that runs FastAPI
+python-multipart>=0.0.9     # required for File/Form uploads to work
+Pillow>=10.3.0              # image reading and degradation pipeline
+torch>=2.2.0
+torchvision>=0.17.0         # ShuffleNetV2
+timm>=0.9.0                 # MobileNetV3 same library your notebook uses
+pydantic>=2.7.0             # data validation for the response schemas
