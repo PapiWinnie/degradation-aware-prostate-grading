@@ -16,7 +16,7 @@ CONDITIONS = {
 }
 
 def apply_degradation(image, condition_id):
-    resize_factor, jpeg_quality = CONDITIONS(condition_id)
+    resize_factor, jpeg_quality = CONDITIONS[condition_id]
 
     img = image.convert("RGB")
     original_size = img.size

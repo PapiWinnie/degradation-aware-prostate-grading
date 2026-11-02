@@ -3,7 +3,7 @@ import base64
 from pathlib import Path
 from functools import lru_cache
 
-import timm            # for MobileNetV3 same lib your notebook uses
+import timm            # for MobileNetV3 same lib notebook uses
 import torch
 import torch.nn as nn
 import torchvision.models as tvm  # for ShuffleNetV2
@@ -22,10 +22,10 @@ CHECKPOINT_DIR = Path(__file__).parent / "checkpoints"
 
 # Frontend name 
 MODEL_REGISTRY = {
-  "MN-Clean": ("mobilenet", "mn_clean.pth"),
-  "MN-Deg":  ("mobilenet", "mn_deg.pth"),
-  "SN-Clean": ("shufflenet", "sn_clean.pth"),
-  "SN-Deg":  ("shufflenet", "sn_deg.pth"),
+  "MN-Clean": ("mobilenet", "mobilenet_ExpE_clean.pth"),
+  "MN-Deg":  ("mobilenet", "mobilenet_degradation_degradation.pth"),
+  "SN-Clean": ("shufflenet", "shufflenet_ExpB_clean.pth"),
+  "SN-Deg":  ("shufflenet", "shufflenet_degradation_degradation.pth"),
 }
 
 # The config that was active when each model was trained.
@@ -33,13 +33,13 @@ MODEL_REGISTRY = {
 #  MN-Clean / MN-Deg -> trained with ExpE config (dropout=0.3, flat head)
 #  SN-Clean / SN-Deg -> trained with ExpB config (no dropout, plain linear head)
 MODEL_CONFIGS = {
-  "MN-Clean": {"drop_rate": 0.3, "dense_head": False},
+  "MN-Clean": {"drop_rate": 0.3, "dense_head": False, "flat_head": True},
   "MN-Deg":  {"drop_rate": 0.3, "dense_head": False},
   "SN-Clean": {"drop_rate": 0.0, "dense_head": False},
   "SN-Deg":  {"drop_rate": 0.0, "dense_head": False},
 }
 
-# Standard ImageNet normalisation used during training in your notebook
+# Standard ImageNet normalisation used during training in our notebook
 TRANSFORM = T.Compose([
   T.Resize((IMG_SIZE, IMG_SIZE)),
   T.ToTensor(),
@@ -67,6 +67,9 @@ def _build_mobilenet(config: dict) -> nn.Module:
       nn.Linear(in_feat, 256), nn.ReLU(),
       nn.Dropout(drop), nn.Linear(256, NUM_CLASSES),
     )
+  elif config.get("flat_head"):
+    # MN-Clean checkpoint was saved with a bare Linear(1024->4) head
+    model.classifier = nn.Linear(in_feat, NUM_CLASSES)
   else:
     # ExpE config: Dropout -> Linear(1024->4)
     model.classifier = nn.Sequential(
