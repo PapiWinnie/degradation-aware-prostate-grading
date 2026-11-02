@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { ArrowUp } from 'lucide-react'
 
-const API = 'http://localhost:8000'
+const API = import.meta.env.VITE_API_URL || 'https://degradation-aware-prostate-grading-production.up.railway.app'
 
 const MODELS = [
   { name: 'MN-Clean', description: 'MobileNetV3 · clean training' },
