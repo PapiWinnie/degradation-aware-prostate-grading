@@ -30,12 +30,10 @@ app = FastAPI(title="CompressPath API", version="0.1.0", lifespan=lifespan)
 
 # Without this, the browser blocks the frontend from calling the API
 # because they run on different ports (5173 vs 8000)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware,
+allow_origins=["*"],          # open for testing
+allow_methods=["*"],
+allow_headers=["*"])
 
 
 # ==== Small helper ====================================================================================================================
