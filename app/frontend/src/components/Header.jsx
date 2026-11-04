@@ -1,3 +1,4 @@
+// App title and subtitle.
 export default function Header() {
   return (
     <div className='flex flex-col items-start mb-8'>

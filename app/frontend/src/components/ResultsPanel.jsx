@@ -1,5 +1,7 @@
 import { GRADE_BG } from '../constants'
 
+// Shown only after a successful inference. 'imageURL' is the local preview of
+// the original upload, while the degraded image comes back from the API as base64.
 export default function ResultsPanel({ result, imageURL, conditionLabel }) {
   return (
     <div className='bg-white mt-6 border border-[#C3C6D7] rounded-xl p-6'>

@@ -1,5 +1,7 @@
 import { CONDITIONS } from '../constants'
 
+// The dropdown and the list edit the same value. The list is there so users
+// can compare the size reduction of every condition at a glance.
 export default function ConditionSelector({ value, onChange }) {
   return (
     <div className='w-1/2 border border-[#C3C6D7] p-4 rounded-xl bg-white flex flex-col gap-3'>

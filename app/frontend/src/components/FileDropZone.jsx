@@ -5,6 +5,8 @@ import { ArrowUp } from 'lucide-react'
 export default function FileDropZone({ variant = 'patch', accept, file, placeholder, hint, onFile }) {
   const inputRef = useRef(null)
 
+  // Without preventDefault on dragover and drop, the browser opens the file
+  // in the tab instead of handing it to us.
   function handleDrop(e) {
     e.preventDefault()
     onFile(e.dataTransfer.files[0])
@@ -34,6 +36,7 @@ export default function FileDropZone({ variant = 'patch', accept, file, placehol
           <span className='text-[#004AC6] font-mono font-bold text-xs'>Browse</span>
         </div>
       )}
+      {/* The native input is hidden. Clicking the styled area opens it through the ref. */}
       <input ref={inputRef} type='file' accept={accept} className='hidden'
              onChange={(e) => onFile(e.target.files[0])} />
     </>

@@ -1,5 +1,6 @@
 import { MODELS } from '../constants'
 
+// Controlled radio-card group. The parent owns the selected model name.
 export default function ModelSelector({ value, onChange }) {
   return (
     <div className='w-1/2 border border-[#C3C6D7] p-4 rounded-xl bg-white'>
