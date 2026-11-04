@@ -63,10 +63,14 @@ export default function App() {
 
     try {
       const res = await fetch(`${API}/infer`, { method: 'POST', body: form })
-      if (!res.ok) throw new Error((await res.json()).detail || 'Inference failed')
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(typeof body.detail === 'string' ? body.detail : 'Inference failed')
+      }
       setResult(await res.json())
     } catch (e) {
-      setError(e.message)
+      // fetch rejects with a TypeError when the backend is unreachable
+      setError(e instanceof TypeError ? 'Cannot reach the server. Is the backend running?' : e.message)
     } finally {
       setLoading(false)
     }
