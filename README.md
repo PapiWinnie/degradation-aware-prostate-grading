@@ -161,13 +161,14 @@ The proposal promised more than I finished. This table shows where each item end
 | Upload a labelled batch and export results as CSV | Not done | The app takes one unlabelled image at a time |
 | Patient-level uncertainty (entropy), ROC-AUC, sensitivity, specificity, processing time | Not done | The notebook does not compute them |
 | Accuracy versus file size trade-off table | Partly done | The app shows file sizes per image. The README results report F1 only |
-| Streamlit demo | Changed | FastAPI and React instead, so the degraded image and file sizes sit beside the prediction |
+| TensorFlow and Keras implementation | Changed | PyTorch instead, with timm for MobileNetV3 and torchvision for ShuffleNetV2 |
+| `/predict` endpoint for one image | Done, renamed | `POST /infer`. It returns file sizes but not processing time |
 | 50 epochs, cosine decay, matched hyperparameters | Changed | Up to 20 epochs after a 2-epoch head warm-up, with early stopping and ReduceLROnPlateau |
 | Backend tests | Done | 47 tests pass |
 
 ## Running the app
 
-The proposal planned a small Streamlit demo. I ended up building a FastAPI backend with a React frontend instead, mostly so the degraded image and file sizes could be shown properly next to the prediction. The API runs on Railway and the frontend on Vercel (links at the top). The steps below run both locally.
+The app is a FastAPI backend with a React frontend. The API runs on Railway and the frontend on Vercel (links at the top). The steps below run both locally.
 
 You'll need Python 3.10 or newer (the backend uses `X | None` type hints) and Node 20 or newer.
 
