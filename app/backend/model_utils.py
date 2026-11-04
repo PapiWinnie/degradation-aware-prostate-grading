@@ -1,5 +1,6 @@
 import io
 import base64
+import logging
 from pathlib import Path
 from functools import lru_cache
 
@@ -12,6 +13,8 @@ from PIL import Image
 
 
 # === Constants ======================
+
+logger = logging.getLogger(__name__)
 
 CLASSES   = ["NC", "G3", "G4", "G5"]
 NUM_CLASSES = 4
@@ -117,7 +120,9 @@ def load_model(model_name: str) -> nn.Module:
   if ckpt_path.exists():
     state = torch.load(ckpt_path, map_location="cpu", weights_only=True)
     model.load_state_dict(state)
-  # No .pth -> random weights. Inference still runs, results are meaningless.
+  else:
+    # Random weights: inference still runs, but the results are meaningless.
+    logger.warning("Checkpoint %s not found; %s is using random weights", ckpt_path, model_name)
 
   return model.eval()  # .eval() disables dropout at inference time
 
