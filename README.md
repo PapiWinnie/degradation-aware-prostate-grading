@@ -56,9 +56,13 @@ degradation-aware-prostate-grading/
       degradation.py         the nine transmission conditions used by the app
       schemas.py             Pydantic response models
       requirements.txt
+      requirements-dev.txt   test dependencies
+      tests/                 pytest suite: unit, integration and error-handling tests
       checkpoints/           the four trained .pth files (about 5 to 6 MB each)
     frontend/                React 19 + Vite + Tailwind 4 single page app
-      src/App.jsx            single-component UI
+      src/App.jsx            state and the one API call
+      src/components/        Header, FileDropZone, ModelSelector, ConditionSelector, ResultsPanel
+      src/constants.js       API address, model list and transmission conditions
 ```
 
 The training notebook is `app/Prostate_Robust_Notebook.ipynb`. It runs every experiment in order, and its saved outputs include all the numbers below. To retrain, you'll also need the datasets on Google Drive. More on that below.
