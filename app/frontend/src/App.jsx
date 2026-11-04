@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react'
-import { ArrowUp } from 'lucide-react'
-
+import { useState } from 'react'
 import { API, MODELS, CONDITIONS, GRADE_BG } from './constants'
+import Header from './components/Header'
+import FileDropZone from './components/FileDropZone'
 
 export default function App() {
   const [model,      setModel]      = useState('SN-Deg')
@@ -12,9 +12,6 @@ export default function App() {
   const [result,     setResult]     = useState(null)
   const [loading,    setLoading]    = useState(false)
   const [error,      setError]      = useState(null)
-
-  const imgRef  = useRef(null)
-  const ckptRef = useRef(null)
 
   function pickImage(file) {
     if (!file) return
@@ -55,42 +52,14 @@ export default function App() {
     <body className='bg-[#F8F9FB]'>
       <div className='bg-[#F8F9FB] min-h-screen px-20 py-12 max-w-[900px] mx-auto'>
 
-        {/* Header */}
-        <div className='flex flex-col items-start mb-8'>
-          <h1 className='font-mono font-bold text-2xl tracking-tight text-[#191C1E]'>COMPRESSPATH</h1>
-          <p className='font-mono text-sm text-[#737686]'>Telepathology Degradation Benchmark</p>
-        </div>
+        <Header />
 
-        {/* Upload zone */}
-        <div
-          onClick={() => imgRef.current.click()}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => { e.preventDefault(); pickImage(e.dataTransfer.files[0]) }}
-          className='border-2 border-dashed border-[#C3C6D7] flex flex-col gap-2 items-center justify-center p-14 bg-white rounded-2xl hover:border-[#004AC6] hover:bg-blue-50 cursor-pointer transition-colors'
-        >
-          <div className='border border-[#C3C6D7] p-3 rounded-full'>
-            <ArrowUp className='text-[#004AC6]' size={20} />
-          </div>
-          <p className='text-sm text-[#191C1E]'>
-            {imageFile ? imageFile.name : 'Drop tissue patch here or click to browse'}
-          </p>
-          <p className='text-xs text-[#737686]'>PNG · JPG · 768 × 768 px recommended</p>
-        </div>
-        <input ref={imgRef} type='file' accept='image/png,image/jpeg' className='hidden'
-               onChange={(e) => pickImage(e.target.files[0])} />
+        <FileDropZone accept='image/png,image/jpeg' file={imageFile} onFile={pickImage}
+          placeholder='Drop tissue patch here or click to browse'
+          hint='PNG · JPG · 768 × 768 px recommended' />
 
-        {/* Custom checkpoint */}
-        <div
-          onClick={() => ckptRef.current.click()}
-          className='flex justify-between items-center bg-white mt-3 px-4 py-3 rounded-xl border border-[#C3C6D7] hover:border-[#004AC6] transition-colors cursor-pointer'
-        >
-          <span className='text-sm text-[#5b5e66]'>
-            {ckptFile ? ckptFile.name : 'Upload custom model checkpoint (.pt)'}
-          </span>
-          <span className='text-[#004AC6] font-mono font-bold text-xs'>Browse</span>
-        </div>
-        <input ref={ckptRef} type='file' accept='.pt,.pth' className='hidden'
-              onChange={(e) => setCkptFile(e.target.files[0])} />
+        <FileDropZone variant='compact' accept='.pt,.pth' file={ckptFile} onFile={setCkptFile}
+          placeholder='Upload custom model checkpoint (.pt)' />
 
         {/* Config row */}
         <div className='flex gap-4 mt-6'>
