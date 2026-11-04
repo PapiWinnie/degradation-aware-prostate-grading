@@ -10,6 +10,10 @@ This is my ALU capstone (BSc Software Engineering, Machine Learning track, super
 
 The app is live at https://degradation-aware-prostate-grading.vercel.app/, backed by an API on Railway at https://degradation-aware-prostate-grading-production.up.railway.app.
 
+Technical report (PDF, 5 pages): [Robustness of Compact Prostate Tissue Classifiers Under Image Compression and Resolution Loss](https://drive.google.com/file/d/1M_NqknmM3C4vo8WqoEa6IVPDn1eB0vWl/view?usp=sharing)
+
+Technical walkthrough video: [Compress Path: Technical Walkthrough](https://www.youtube.com/watch?v=f0_nBDb0N10)
+
 Short version: ShuffleNet trained on degraded images barely notices the damage. The clean-trained models fall apart once resolution drops.
 
 ## Why this question
@@ -294,11 +298,16 @@ These don't map one to one onto the notebook's conditions. The app scales relati
 - Every number in the results comes from a single seed.
 - The checkpoint upload box says `.pt`, but it accepts `.pt` and `.pth`. Either way, it needs a plain state dict.
 
-## Stack
+## Technical requirements
 
-- Backend: FastAPI, Uvicorn, PyTorch, torchvision, timm, Pillow, Pydantic
-- Frontend: React 19, Vite, Tailwind CSS 4, lucide-react
-- Training: PyTorch on Google Colab, scikit-learn for metrics, pandas, seaborn and matplotlib for plots
+This is a web app, so no mobile SDK or APK is involved. To run it locally you need:
+
+- Python 3.10 or newer, because the backend uses `X | None` type hints, and Node 20 or newer.
+- Backend: FastAPI 0.111 or newer, Uvicorn 0.29 or newer, PyTorch 2.2 or newer (the CPU build), torchvision 0.17 or newer, timm 0.9 or newer, Pillow 10.3 or newer, Pydantic 2.7 or newer and python-multipart. The tests add pytest (`requirements-dev.txt`).
+- Frontend: React 19, Vite 8, Tailwind CSS 4 and lucide-react.
+- Hardware: no GPU. All four models run on CPU.
+
+To retrain the models you also need Google Colab with a GPU (the saved run used PyTorch 2.11.0 with CUDA 13.0), plus scikit-learn, pandas, seaborn and matplotlib, and the two datasets described under Data.
 
 ## Data
 
