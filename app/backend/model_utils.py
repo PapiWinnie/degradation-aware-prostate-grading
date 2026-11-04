@@ -4,78 +4,76 @@ import logging
 from pathlib import Path
 from functools import lru_cache
 
-import timm            # for MobileNetV3 same lib notebook uses
+import timm                           # MobileNetV3, same library the notebook uses
 import torch
 import torch.nn as nn
-import torchvision.models as tvm  # for ShuffleNetV2
+import torchvision.models as tvm      # ShuffleNetV2
 import torchvision.transforms as T
 from PIL import Image
 
 
-# === Constants ======================
-
 logger = logging.getLogger(__name__)
 
-CLASSES   = ["NC", "G3", "G4", "G5"]
+CLASSES     = ["NC", "G3", "G4", "G5"]
 NUM_CLASSES = 4
-IMG_SIZE  = 224
+IMG_SIZE    = 224
 
-# checkpoints/ folder sits next to this file
+# The checkpoints folder sits next to this file.
 CHECKPOINT_DIR = Path(__file__).parent / "checkpoints"
 
-# Frontend name 
+# Maps the model name the frontend sends to (architecture, checkpoint file).
 MODEL_REGISTRY = {
   "MN-Clean": ("mobilenet", "mobilenet_ExpE_clean.pth"),
-  "MN-Deg":  ("mobilenet", "mobilenet_degradation_degradation.pth"),
+  "MN-Deg":   ("mobilenet", "mobilenet_degradation_degradation.pth"),
   "SN-Clean": ("shufflenet", "shufflenet_ExpB_clean.pth"),
-  "SN-Deg":  ("shufflenet", "shufflenet_degradation_degradation.pth"),
+  "SN-Deg":   ("shufflenet", "shufflenet_degradation_degradation.pth"),
 }
 
-# The config that was active when each model was trained.1
-# This determines the head shape must match the .pth or you get a size mismatch.
-#  MN-Clean / MN-Deg -> trained with ExpE config (dropout=0.3, flat head)
-#  SN-Clean / SN-Deg -> trained with ExpB config (no dropout, plain linear head)
+# The config each model was trained with. The head shape has to match the
+# saved weights, otherwise load_state_dict fails with a size mismatch.
+#   MN-Clean and MN-Deg use the ExpE config (dropout 0.3).
+#   SN-Clean and SN-Deg use the ExpB config (no dropout, plain linear head).
 MODEL_CONFIGS = {
   "MN-Clean": {"drop_rate": 0.3, "dense_head": False, "flat_head": True},
-  "MN-Deg":  {"drop_rate": 0.3, "dense_head": False},
+  "MN-Deg":   {"drop_rate": 0.3, "dense_head": False},
   "SN-Clean": {"drop_rate": 0.0, "dense_head": False},
-  "SN-Deg":  {"drop_rate": 0.0, "dense_head": False},
+  "SN-Deg":   {"drop_rate": 0.0, "dense_head": False},
 }
 
-# Standard ImageNet normalisation used during training in our notebook
+# Same preprocessing as the notebook: resize slightly larger, center crop to
+# the model's input size, then normalize with the ImageNet statistics.
 TRANSFORM = T.Compose([
   T.Resize(IMG_SIZE + 16),
   T.CenterCrop(IMG_SIZE),
   T.ToTensor(),
   T.Normalize(mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225]),
+              std=[0.229, 0.224, 0.225]),
 ])
 
 
-# ===== Architecture builders ==========================================
-# These mirror build_model_empirical() from  notebook exactly.
+# Architecture builders. These mirror build_model_empirical() in the notebook.
 
 def _build_mobilenet(config: dict) -> nn.Module:
-  # num_classes=0 tells timm to remove its own head we attach ours below
+  # num_classes=0 removes timm's own head so we can attach ours below.
   model = timm.create_model("mobilenetv3_small_100", pretrained=False, num_classes=0)
 
-  # Dummy forward pass to find the actual feature dimension (usually 1024)
+  # Run a dummy image through to read the feature size instead of hardcoding it.
   with torch.no_grad():
     in_feat = model(torch.zeros(1, 3, IMG_SIZE, IMG_SIZE)).shape[1]
 
   drop = config["drop_rate"]
 
   if config.get("dense_head"):
-    # ExpF config: Linear(1024->256) -> ReLU -> Dropout -> Linear(256->4)
+    # Linear -> ReLU -> Dropout -> Linear (a hidden layer of 256 units).
     model.classifier = nn.Sequential(
       nn.Linear(in_feat, 256), nn.ReLU(),
       nn.Dropout(drop), nn.Linear(256, NUM_CLASSES),
     )
   elif config.get("flat_head"):
-    # MN-Clean checkpoint was saved with a bare Linear(1024->4) head
+    # The MN-Clean checkpoint was saved with a bare linear layer and no dropout.
     model.classifier = nn.Linear(in_feat, NUM_CLASSES)
   else:
-    # ExpE config: Dropout -> Linear(1024->4)
+    # Dropout followed by one linear layer.
     model.classifier = nn.Sequential(
       nn.Dropout(drop), nn.Linear(in_feat, NUM_CLASSES),
     )
@@ -83,9 +81,9 @@ def _build_mobilenet(config: dict) -> nn.Module:
 
 
 def _build_shufflenet(config: dict) -> nn.Module:
-  model  = tvm.shufflenet_v2_x1_0(weights=None)
-  in_feat = model.fc.in_features  # 1024 for x1.0 variant
-  drop  = config["drop_rate"]
+  model   = tvm.shufflenet_v2_x1_0(weights=None)
+  in_feat = model.fc.in_features
+  drop    = config["drop_rate"]
 
   if config.get("dense_head"):
     model.fc = nn.Sequential(
@@ -93,10 +91,9 @@ def _build_shufflenet(config: dict) -> nn.Module:
       nn.Dropout(drop), nn.Linear(256, NUM_CLASSES),
     )
   elif drop > 0:
-    # ExpC/D/E config
     model.fc = nn.Sequential(nn.Dropout(drop), nn.Linear(in_feat, NUM_CLASSES))
   else:
-    # ExpB config (the winner) just a single linear layer, nothing else
+    # The best configuration is also the simplest: one linear layer.
     model.fc = nn.Linear(in_feat, NUM_CLASSES)
   return model
 
@@ -105,48 +102,49 @@ def _build(arch: str, config: dict) -> nn.Module:
   return _build_mobilenet(config) if arch == "mobilenet" else _build_shufflenet(config)
 
 
-# === Loading =========================─
+# Loading
 
+# lru_cache keeps each loaded model in memory, so only the first request for a
+# model reads its checkpoint from disk.
 @lru_cache(maxsize=4)
 def load_model(model_name: str) -> nn.Module:
-  """
-  Load a bundled checkpoint. @lru_cache means each .pth is read from disk
-  only once subsequent calls return the already-loaded model instantly.
-  """
   arch, filename = MODEL_REGISTRY[model_name]
-  ckpt_path   = CHECKPOINT_DIR / filename
-  model     = _build(arch, MODEL_CONFIGS[model_name])
+  ckpt_path      = CHECKPOINT_DIR / filename
+  model          = _build(arch, MODEL_CONFIGS[model_name])
 
   if ckpt_path.exists():
+    # weights_only=True limits what pickle may load, which blocks code
+    # execution from a tampered file.
     state = torch.load(ckpt_path, map_location="cpu", weights_only=True)
     model.load_state_dict(state)
   else:
     # Random weights: inference still runs, but the results are meaningless.
     logger.warning("Checkpoint %s not found; %s is using random weights", ckpt_path, model_name)
 
-  return model.eval()  # .eval() disables dropout at inference time
+  # eval() turns dropout off, so predictions are deterministic.
+  return model.eval()
 
 
+# Used when the user uploads their own .pth. Any failure here (corrupt file,
+# wrong architecture) propagates to the API layer, which reports it as a 400.
 def load_custom_checkpoint(model_name: str, ckpt_bytes: bytes) -> nn.Module:
-  """Used when the user uploads their own .pth via the frontend."""
   arch, _ = MODEL_REGISTRY[model_name]
-  model  = _build(arch, MODEL_CONFIGS[model_name])
-  state  = torch.load(io.BytesIO(ckpt_bytes), map_location="cpu", weights_only=True)
+  model   = _build(arch, MODEL_CONFIGS[model_name])
+  state   = torch.load(io.BytesIO(ckpt_bytes), map_location="cpu", weights_only=True)
   model.load_state_dict(state)
   return model.eval()
 
 
-# === Inference ======================─
+# Inference
 
-@torch.no_grad()  # disables gradient tracking faster, uses less memory
+# Gradients are only needed for training, so turning them off saves memory
+# and time here.
+@torch.no_grad()
 def run_inference(model: nn.Module, image: Image.Image) -> list[dict]:
-  """
-  Single image -> list of 4 class probabilities.
-
-  Flow: PIL image -> normalize -> (1,3,224,224) tensor -> model -> softmax -> %
-  """
-  tensor = TRANSFORM(image.convert("RGB")).unsqueeze(0) # add batch dim
-  probs = torch.softmax(model(tensor), dim=1).squeeze() # (4,) probabilities
+  # Steps: preprocess, add a batch dimension, run the model, softmax into
+  # probabilities, then convert each one to a percentage.
+  tensor = TRANSFORM(image.convert("RGB")).unsqueeze(0)
+  probs  = torch.softmax(model(tensor), dim=1).squeeze()
 
   return [
     {"label": CLASSES[i], "confidence": round(probs[i].item() * 100, 1)}
@@ -154,8 +152,9 @@ def run_inference(model: nn.Module, image: Image.Image) -> list[dict]:
   ]
 
 
+# PNG is lossless, so the browser shows exactly what the model saw. Base64
+# lets the image travel inside the JSON response.
 def image_to_b64(image: Image.Image) -> str:
-  """Encode PIL image as base64 string so it can travel in JSON."""
   buf = io.BytesIO()
   image.save(buf, format="PNG")
   return base64.b64encode(buf.getvalue()).decode()
