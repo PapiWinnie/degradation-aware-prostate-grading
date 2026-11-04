@@ -18,6 +18,8 @@ export default function App() {
 
   function pickImage(file) {
     if (!file) return
+    // free the previous preview so repeated uploads don't leak memory
+    if (imageURL) URL.revokeObjectURL(imageURL)
     setImageFile(file)
     setImageURL(URL.createObjectURL(file))
     setResult(null)
@@ -52,35 +54,33 @@ export default function App() {
   const conditionLabel = CONDITIONS.find(c => c.id === condition)?.name
 
   return (
-    <body className='bg-[#F8F9FB]'>
-      <div className='bg-[#F8F9FB] min-h-screen px-20 py-12 max-w-[900px] mx-auto'>
+    <div className='min-h-screen px-20 py-12 max-w-[900px] mx-auto'>
 
-        <Header />
+      <Header />
 
-        <FileDropZone accept='image/png,image/jpeg' file={imageFile} onFile={pickImage}
-          placeholder='Drop tissue patch here or click to browse'
-          hint='PNG · JPG · 768 × 768 px recommended' />
+      <FileDropZone accept='image/png,image/jpeg' file={imageFile} onFile={pickImage}
+        placeholder='Drop tissue patch here or click to browse'
+        hint='PNG · JPG · 768 × 768 px recommended' />
 
-        <FileDropZone variant='compact' accept='.pt,.pth' file={ckptFile} onFile={setCkptFile}
-          placeholder='Upload custom model checkpoint (.pt)' />
+      <FileDropZone variant='compact' accept='.pt,.pth' file={ckptFile} onFile={setCkptFile}
+        placeholder='Upload custom model checkpoint (.pt)' />
 
-        <div className='flex gap-4 mt-6'>
-          <ModelSelector value={model} onChange={setModel} />
-          <ConditionSelector value={condition} onChange={setCondition} />
-        </div>
-
-        {/* Run button */}
-        <button onClick={runInference} disabled={loading || !imageFile}
-          className='w-full bg-[#004AC6] hover:bg-[#2563eb] disabled:opacity-40 disabled:cursor-not-allowed transition-colors py-4 rounded-xl text-white font-mono font-bold mt-6'
-        >
-          {loading ? 'Running…' : 'Run inference'}
-        </button>
-
-        {error && <p className='mt-4 text-sm text-red-600 font-mono'>{error}</p>}
-
-        {result && <ResultsPanel result={result} imageURL={imageURL} conditionLabel={conditionLabel} />}
-
+      <div className='flex gap-4 mt-6'>
+        <ModelSelector value={model} onChange={setModel} />
+        <ConditionSelector value={condition} onChange={setCondition} />
       </div>
-    </body>
+
+      {/* Run button */}
+      <button onClick={runInference} disabled={loading || !imageFile}
+        className='w-full bg-[#004AC6] hover:bg-[#2563eb] disabled:opacity-40 disabled:cursor-not-allowed transition-colors py-4 rounded-xl text-white font-mono font-bold mt-6'
+      >
+        {loading ? 'Running…' : 'Run inference'}
+      </button>
+
+      {error && <p className='mt-4 text-sm text-red-600 font-mono'>{error}</p>}
+
+      {result && <ResultsPanel result={result} imageURL={imageURL} conditionLabel={conditionLabel} />}
+
+    </div>
   )
 }

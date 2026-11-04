@@ -18,6 +18,10 @@
   --color-g5: #DC2626;
 }
 
+body {
+  background-color: var(--color-surface);
+}
+
 /* 
 @media (prefers-color-scheme: dark) {
   :root {
