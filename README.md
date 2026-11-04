@@ -1,14 +1,16 @@
-# CompressPath: degradation-aware prostate grading
+# CompressPath: how compact prostate-tissue classifiers hold up under compression and resolution loss
 
-Rwanda has about 14 practicing pathologists. That works out to roughly 1.1 per million people, compared with around 60 per million in the United States (McHugh, 2020). Hospitals have dealt with the shortage through telepathology. Rural referral centers send static images for triage (Mpunga et al., 2016), and some sites now run live review over videoconferencing (Manirakiza et al., 2023).
+Rwanda has about 14 practicing pathologists, roughly 1.1 per million people. The United States has around 60 per million (McHugh, 2020). Hospitals cope with telepathology: rural referral centers send static images for triage (Mpunga et al., 2016), and some sites run live review over videoconferencing (Manirakiza et al., 2023). Those images cross slow networks, so they get compressed and resized before anyone looks at them.
 
-Those images travel over slow networks, so they get compressed and resized before anyone reviews them. A pathologist can usually work around a blurry image. A classifier trained only on clean scans might not, and that's the part I wanted to test.
+A pathologist can usually work around a blurry image. A classifier trained on clean scans may not, and as far as I could find, nobody had checked. Compact models built for modest hardware are rarely tested under this kind of damage, and I found no comparison of two of them under compression and resolution loss together, with and without training on degraded images.
 
-This repo holds my ALU capstone (BSc Software Engineering, Machine Learning track, supervised by Emmanuel Adjei). It compares two compact CNNs, MobileNetV3-Small and ShuffleNetV2-x1.0, at grading prostate tissue patches from SICAPv2. I trained each one twice, once on clean patches and once on a mix of clean and degraded ones. Then I tested all four models on a dataset none of them had seen, under nine levels of JPEG compression and resolution loss.
+So I asked the question early, while the choices are still open. What do compression and resolution loss do to compact classifiers, and which model and training approach holds up best? The answer here comes from public data, a controlled comparison of two architectures, and a test bench anyone can use to check their own model the same way.
+
+This is my ALU capstone (BSc Software Engineering, Machine Learning track, supervised by Emmanuel Adjei). It has two parts. The first is the evidence: MobileNetV3-Small and ShuffleNetV2-x1.0, each trained twice on SICAPv2 (once on clean patches, once on a mix of clean and degraded ones), then tested on a dataset none of them had seen, under nine levels of JPEG compression and resolution loss. The second is a small web app where a researcher, a telepathology lab or a pipeline developer picks a model and a transfer condition and sees what degradation does to the prediction and the file size. You can upload your own checkpoint and run it through the same conditions.
+
+The app is live at https://degradation-aware-prostate-grading.vercel.app/, backed by an API on Railway at https://degradation-aware-prostate-grading-production.up.railway.app.
 
 Short version: ShuffleNet trained on degraded images barely notices the damage. The clean-trained models fall apart once resolution drops.
-
-There's also a small web app. You upload a patch, pick a model and a "transmission condition", and it shows the degraded image next to the predicted grade.
 
 ## Why this question
 
@@ -24,27 +26,22 @@ Some earlier work has looked at how degraded images affect automated pathology t
 
 That last paper is why MobileNetV3 is here. ShuffleNetV2 (Ma et al., 2018) is the second model because it was designed around measured inference speed on real devices, not just FLOP counts. It's about the same size as MobileNetV3-Small (around 2.3 million parameters at 1.0x width), so the comparison is fair. Nobody had checked whether the two hold up the same way under compression and downsampling, or whether degradation-aware training helps both of them.
 
+## Why test this early
+
+Gleason grading models are well established. The paper behind SICAPv2 (Silva-Rodriguez et al., 2020) describes one. My question is a different one: does a compact classifier's accuracy survive the compression and downsampling that telepathology forces on images, and does training on degraded data help?
+
+If a model falls apart on a half-resolution patch, it is better to learn that now, with public data and a notebook, than after someone has built a workflow around it.
+
+The degradation here is simulated with JPEG compression and downscaling. It stands in for real network transmission or phone microscopy and is not a validated substitute. Nothing in this repo is a clinical recommendation, and I did not test deployment outcomes, queue times or agreement between pathologists.
+
 ## Research questions
 
 1. Does training on a mix of clean and degraded patches improve macro F1 and per-class recall under JPEG compression, resolution loss, and both combined?
 2. How much clean-image accuracy does each architecture give up when trained on degraded data?
 3. Does the benefit of degradation-aware training differ between MobileNetV3-Small and ShuffleNetV2?
-4. Which architecture and training approach gives the best balance for a low-bandwidth referral setting?
+4. Which architecture and training approach is the better candidate to investigate first for a low-bandwidth referral setting?
 
 Answers are in the [results section](#results) below.
-
-## What the models predict
-
-Every patch gets one of four labels:
-
-| Label | Meaning |
-|-------|---------|
-| NC | Non-cancerous tissue |
-| G3 | Gleason pattern 3 |
-| G4 | Gleason pattern 4 |
-| G5 | Gleason pattern 5 |
-
-G3 versus G4 is the hard boundary. Almost every model in this project loses most of its points there.
 
 ## Repository layout
 
@@ -61,7 +58,7 @@ degradation-aware-prostate-grading/
       requirements.txt
       checkpoints/           the four trained .pth files (about 5 to 6 MB each)
     frontend/                React 19 + Vite + Tailwind 4 single page app
-      src/App.jsx            the whole UI lives here
+      src/App.jsx            single-component UI
 ```
 
 The training notebook is `app/Prostate_Robust_Notebook.ipynb`. It runs every experiment in order, and its saved outputs include all the numbers below. To retrain, you'll also need the datasets on Google Drive. More on that below.
@@ -112,7 +109,7 @@ Question 2, what does it cost? Almost nothing on clean SICAPv2 (see above). On c
 
 Question 3, does the benefit differ by architecture? It does, and not in the way I expected. SN-Deg is nearly flat across all nine conditions. It even scores slightly higher under the stress condition (0.548) than on clean Zurich (0.533), and that stress condition was held out of training. MN-Deg improves everywhere, including a big jump on clean Zurich images (0.578 vs 0.340). That suggests the augmentation also made MobileNet less sensitive to the change of dataset. But it still drops to 0.319 under the stress condition. Ji et al. found MobileNetV3 to be the most robust of the backbones they tested, but here ShuffleNetV2 held up better once resolution loss was involved.
 
-Question 4, which one would I pick? SN-Deg, clearly. It has the best mean and the flattest curve.
+Question 4, which one would I take into a pilot first? SN-Deg. It has the best mean and the flattest curve.
 
 Some honest caveats. Every model loses ground just from switching datasets, even before any degradation. Part of that is class mix (Zurich is mostly G3, while SICAPv2 validation is mostly NC and G4). Each model also leans toward one class on Zurich: MN-Clean over-calls G5, SN-Clean over-calls NC, and SN-Deg over-calls G3. Under the stress condition, SN-Deg only finds 16% of G5 patches, though when it does call G5 it's right 86% of the time. None of these models is ready for clinical use, and I'm not claiming they are.
 
@@ -145,9 +142,28 @@ MyDrive/capstone/
 
 Each experiment writes its result to `checkpoints/empirical/results_registry.json`, and later cells read the best config back from there. Run All works from top to bottom without any manual edits.
 
+## Scope versus the proposal
+
+The proposal promised more than I finished. This table shows where each item ended up.
+
+| Planned in the proposal | Status | Notes |
+|-------------------------|--------|-------|
+| Train MobileNetV3-Small and ShuffleNetV2, clean and degradation-aware | Done | Each architecture uses its own config, picked by a six-step ablation |
+| Evaluate under JPEG, downsampling and both combined | Done | Nine conditions, one of them held out of training as a stress test |
+| Macro F1 and per-class recall | Done | See Results |
+| Independent test set | Done, extended | Zurich TMA, a different lab, used only for testing |
+| React and FastAPI MVP: upload an image, pick a model and a transfer condition, see predictions and file sizes | Done | One image at a time |
+| Test your own model in the tool | Done | Custom checkpoint upload |
+| Upload a labelled batch and export results as CSV | Not done | The app takes one unlabelled image at a time |
+| Patient-level uncertainty (entropy), ROC-AUC, sensitivity, specificity, processing time | Not done | The notebook does not compute them |
+| Accuracy versus file size trade-off table | Partly done | The app shows file sizes per image. The README results report F1 only |
+| Streamlit demo | Changed | FastAPI and React instead, so the degraded image and file sizes sit beside the prediction |
+| 50 epochs, cosine decay, matched hyperparameters | Changed | Up to 20 epochs after a 2-epoch head warm-up, with early stopping and ReduceLROnPlateau |
+| Backend tests | Done | 47 tests pass |
+
 ## Running the app
 
-The proposal planned a small Streamlit demo. I ended up building a FastAPI backend with a React frontend instead, mostly so the degraded image and file sizes could be shown properly next to the prediction. It's still a local demo, not a deployable service.
+The proposal planned a small Streamlit demo. I ended up building a FastAPI backend with a React frontend instead, mostly so the degraded image and file sizes could be shown properly next to the prediction. The API runs on Railway and the frontend on Vercel (links at the top). The steps below run both locally.
 
 You'll need Python 3.10 or newer (the backend uses `X | None` type hints) and Node 20 or newer.
 
@@ -171,7 +187,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. The API address is hardcoded as `http://localhost:8000` near the top of `src/App.jsx`, so change it there if your backend lives somewhere else.
+Open http://localhost:5173. Without any configuration the frontend calls the deployed API. To use your local backend, create `app/frontend/.env` containing `VITE_API_URL=http://localhost:8000`.
 
 ### Running the tests
 
@@ -182,7 +198,7 @@ pytest -v
 pytest -m "not slow"            # skip tests that run the real checkpoints
 ```
 
-The suite in `app/backend/tests/` has three parts:
+The suite in `app/backend/tests/` has 47 tests in three files:
 
 | File | Type | What it covers |
 |------|------|----------------|
@@ -192,12 +208,23 @@ The suite in `app/backend/tests/` has three parts:
 
 ### Using it
 
+The app is a test bench for seeing how degradation changes a model's output. The label it shows is an experimental output, not a diagnosis. There are four labels:
+
+| Label | Meaning |
+|-------|---------|
+| NC | Non-cancerous tissue |
+| G3 | Gleason pattern 3 |
+| G4 | Gleason pattern 4 |
+| G5 | Gleason pattern 5 |
+
+G3 versus G4 is the hard boundary. Almost every model in this project loses most of its points there.
+
 1. Drop a tissue patch (PNG or JPG, ideally square) onto the upload area.
 2. Pick a model. SN-Deg is the default because it did best.
 3. Pick a transmission condition.
 4. Click Run inference.
 
-You'll see the predicted grade, a probability bar for each class, and the original and degraded images side by side with their file sizes. You can upload your own `.pth` checkpoint too. It just has to match the architecture and head shape of the selected model, or loading fails.
+You'll see the model's output label, a probability bar for each class, and the original and degraded images side by side with their file sizes. You can upload your own `.pth` checkpoint too. It just has to match the architecture and head shape of the selected model, or loading fails.
 
 ## API
 
@@ -258,7 +285,7 @@ These don't map one to one onto the notebook's conditions. The app scales relati
 ## Known rough edges
 
 - CORS is open to every origin (`allow_origins=["*"]`). That's fine on your own machine, but lock it down before deploying anywhere.
-- The frontend has no environment config. The API URL is a constant in `App.jsx`.
+- Without `VITE_API_URL` set, the frontend calls the deployed Railway API, not a local backend.
 - Every number in the results comes from a single seed.
 - The checkpoint upload box says `.pt`, but it accepts `.pt` and `.pth`. Either way, it needs a plain state dict.
 
