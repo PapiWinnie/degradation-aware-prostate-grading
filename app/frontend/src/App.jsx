@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { API, MODELS, CONDITIONS, GRADE_BG } from './constants'
+import { API, CONDITIONS, GRADE_BG } from './constants'
 import Header from './components/Header'
 import FileDropZone from './components/FileDropZone'
+import ModelSelector from './components/ModelSelector'
+import ConditionSelector from './components/ConditionSelector'
 
 export default function App() {
   const [model,      setModel]      = useState('SN-Deg')
@@ -61,58 +63,9 @@ export default function App() {
         <FileDropZone variant='compact' accept='.pt,.pth' file={ckptFile} onFile={setCkptFile}
           placeholder='Upload custom model checkpoint (.pt)' />
 
-        {/* Config row */}
         <div className='flex gap-4 mt-6'>
-
-          {/* Model selector */}
-          <div className='w-1/2 border border-[#C3C6D7] p-4 rounded-xl bg-white'>
-            <p className='font-mono text-xs text-[#737686] mb-3'>MODEL</p>
-            <div className='grid grid-cols-2 gap-3'>
-              {MODELS.map((m) => (
-                <label key={m.name} onClick={() => setModel(m.name)}
-                  className={`flex flex-col p-3 rounded-lg border cursor-pointer transition-colors ${
-                    model === m.name ? 'border-[#004AC6] bg-blue-50' : 'border-[#C3C6D7] bg-white hover:border-[#004AC6]'
-                  }`}
-                >
-                  <div className='flex justify-between items-start'>
-                    <div className='flex flex-col'>
-                      <span className='font-mono font-bold text-sm text-[#191C1E]'>{m.name}</span>
-                      <span className='text-xs text-[#737686] mt-0.5'>{m.description}</span>
-                      {m.best && (
-                        <span className='mt-2 self-start border border-[#16A34A] text-[#16A34A] text-xs rounded-full px-2 py-0.5'>
-                          Best F1
-                        </span>
-                      )}
-                    </div>
-                    <input type='radio' name='model' value={m.name} checked={model === m.name}
-                          onChange={() => setModel(m.name)} className='accent-[#004AC6] mt-0.5' />
-                  </div>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Transfer condition */}
-          <div className='w-1/2 border border-[#C3C6D7] p-4 rounded-xl bg-white flex flex-col gap-3'>
-            <p className='font-mono text-xs text-[#737686]'>TRANSFER CONDITION</p>
-            <select value={condition} onChange={(e) => setCondition(e.target.value)}
-              className='w-full border border-[#004AC6] px-3 py-2.5 rounded-lg text-sm font-mono text-[#191C1E] cursor-pointer outline-none'
-            >
-              {CONDITIONS.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-            <ul className='flex flex-col rounded-xl overflow-hidden border border-[#C3C6D7]'>
-              {CONDITIONS.map((c, i) => (
-                <li key={c.id} onClick={() => setCondition(c.id)}
-                  className={`flex justify-between px-3 py-2 text-xs font-mono border-b border-[#C3C6D7] last:border-b-0 cursor-pointer transition-colors ${
-                    condition === c.id ? 'bg-blue-50' : 'bg-white hover:bg-[#F8F9FB]'
-                  }`}
-                >
-                  <span className={i === 0 ? 'text-[#004AC6] font-semibold' : 'text-[#5b5e66]'}>{c.name}</span>
-                  <span className='text-[#737686]'>{c.reduction}%</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <ModelSelector value={model} onChange={setModel} />
+          <ConditionSelector value={condition} onChange={setCondition} />
         </div>
 
         {/* Run button */}
