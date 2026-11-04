@@ -188,7 +188,7 @@ export default function App() {
                 {result.predicted_grade}
               </span>
               <div className='flex flex-col'>
-                <span className='font-bold text-xl text-[#19C1E]'>{result.top_confidence}% confidence</span>
+                <span className='font-bold text-xl text-[#191C1E]'>{result.top_confidence}% confidence</span>
                 <span className='text-xs text-[#737686] mt-1 font-mono'>
                   Predicted Gleason grade · {result.model_used} · {conditionLabel}
                 </span>
