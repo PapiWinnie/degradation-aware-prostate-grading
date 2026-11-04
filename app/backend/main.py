@@ -1,4 +1,5 @@
 import io
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -11,6 +12,10 @@ from model_utils import (
     load_custom_checkpoint, load_model, run_inference,
 )
 from schemas import GleasonProb, InferenceResult
+
+logger = logging.getLogger(__name__)
+
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
 # ==== Startup event ================================================================================================================─
@@ -76,6 +81,8 @@ async def infer(
 
     # 1. Read the uploaded image bytes and measure raw size
     raw = await image.read()
+    if len(raw) > MAX_UPLOAD_BYTES:
+        raise HTTPException(413, f"Image larger than {MAX_UPLOAD_BYTES // (1024 * 1024)} MB")
     original_size_kb = round(len(raw) / 1024, 1)
     pil_image = open_image(raw)
 
@@ -92,7 +99,11 @@ async def infer(
         model = load_model(model_name)
 
     # 4. Run inference on the DEGRADED image (not the original)
-    probs = run_inference(model, degraded)
+    try:
+        probs = run_inference(model, degraded)
+    except Exception as e:
+        logger.exception("Inference failed")
+        raise HTTPException(500, f"Inference failed: {e}")
     top   = max(probs, key=lambda p: p["confidence"])
 
     # 5. Pack everything into the response schema and return
