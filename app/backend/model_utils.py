@@ -28,7 +28,7 @@ MODEL_REGISTRY = {
   "SN-Deg":  ("shufflenet", "shufflenet_degradation_degradation.pth"),
 }
 
-# The config that was active when each model was trained.
+# The config that was active when each model was trained.1
 # This determines the head shape must match the .pth or you get a size mismatch.
 #  MN-Clean / MN-Deg -> trained with ExpE config (dropout=0.3, flat head)
 #  SN-Clean / SN-Deg -> trained with ExpB config (no dropout, plain linear head)
@@ -41,7 +41,8 @@ MODEL_CONFIGS = {
 
 # Standard ImageNet normalisation used during training in our notebook
 TRANSFORM = T.Compose([
-  T.Resize((IMG_SIZE, IMG_SIZE)),
+  T.Resize(IMG_SIZE + 16),
+  T.CenterCrop(IMG_SIZE),
   T.ToTensor(),
   T.Normalize(mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225]),
