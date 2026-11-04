@@ -1,8 +1,7 @@
-"""Unit tests for model_utils.py: model loading, custom checkpoints, inference.
-
-Tests marked slow run the real bundled checkpoints, so they exercise the same
-weights the deployed app uses.
-"""
+# Unit tests for model_utils.py: model loading, custom checkpoints, inference.
+#
+# Tests marked slow run the real bundled checkpoints, so they exercise the same
+# weights the deployed app uses.
 import base64
 import io
 

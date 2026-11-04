@@ -1,10 +1,9 @@
-"""Integration and error-handling tests for the FastAPI routes in main.py.
-
-These go through the real HTTP layer (validation, upload parsing, degradation,
-model, response schema), so they catch problems the unit tests cannot. The
-error tests check that bad input produces a clear status code and message
-instead of an unhandled server error.
-"""
+# Integration and error-handling tests for the FastAPI routes in main.py.
+#
+# These go through the real HTTP layer (validation, upload parsing, degradation,
+# model, response schema), so they catch problems the unit tests cannot. The
+# error tests check that bad input produces a clear status code and message
+# instead of an unhandled server error.
 import io
 import time
 
@@ -17,7 +16,7 @@ from model_utils import CLASSES, MODEL_REGISTRY, load_model
 
 
 def post_infer(client, image_bytes, model_name="SN-Deg", condition_id="original", **files):
-    """Send a multipart /infer request; extra files (e.g. checkpoint) are merged in."""
+    # Send a multipart /infer request; extra files (e.g. checkpoint) are merged in.
     return client.post(
         "/infer",
         data={"model_name": model_name, "condition_id": condition_id},

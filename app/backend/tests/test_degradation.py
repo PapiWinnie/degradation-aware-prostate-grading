@@ -1,9 +1,8 @@
-"""Unit tests for degradation.py.
-
-The degradation step simulates a low-bandwidth link: downscale, JPEG encode,
-then restore the original size. These tests check that the simulation is
-correct and that the model always receives an image of the expected shape.
-"""
+# Unit tests for degradation.py.
+#
+# The degradation step simulates a low-bandwidth link: downscale, JPEG encode,
+# then restore the original size. These tests check that the simulation is
+# correct and that the model always receives an image of the expected shape.
 import pytest
 from PIL import Image
 
