@@ -173,6 +173,23 @@ npm run dev
 
 Open http://localhost:5173. The API address is hardcoded as `http://localhost:8000` near the top of `src/App.jsx`, so change it there if your backend lives somewhere else.
 
+### Running the tests
+
+```bash
+cd app/backend
+pip install -r requirements-dev.txt
+pytest -v
+pytest -m "not slow"            # skip tests that run the real checkpoints
+```
+
+The suite in `app/backend/tests/` has three parts:
+
+| File | Type | What it covers |
+|------|------|----------------|
+| `test_degradation.py` | Unit | The nine transmission conditions: output shape, lossless baseline, payload size ordering, tiny and grayscale images |
+| `test_model_utils.py` | Unit | Model loading and caching, custom checkpoint round trip, rejection of corrupt or mismatched checkpoints, inference output |
+| `test_api.py` | Integration, error handling, performance | Every route, all models against the best and worst condition, 400/413/422/500 responses, and a warm-request latency check |
+
 ### Using it
 
 1. Drop a tissue patch (PNG or JPG, ideally square) onto the upload area.
