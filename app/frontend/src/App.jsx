@@ -69,7 +69,7 @@ export default function App() {
 
       <FileDropZone accept='image/png,image/jpeg' file={imageFile} onFile={pickImage}
         placeholder='Drop tissue patch here or click to browse'
-        hint='PNG · JPG · 768 × 768 px recommended' />
+        hint='PNG · JPG · 512 × 512 px recommended (square)' />
 
       <FileDropZone variant='compact' accept='.pt,.pth' file={ckptFile} onFile={setCkptFile}
         placeholder='Upload custom model checkpoint (.pt)' />
