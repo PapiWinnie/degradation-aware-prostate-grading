@@ -2,7 +2,7 @@
 
 Rwanda has about 14 practicing pathologists, roughly 1.1 per million people. The United States has around 60 per million (McHugh, 2020). Hospitals cope with telepathology: rural referral centers send static images for triage (Mpunga et al., 2016), and some sites run live review over videoconferencing (Manirakiza et al., 2023). Those images cross slow networks, so they get compressed and resized before anyone looks at them.
 
-A pathologist can usually work around a blurry image. A classifier trained on clean scans may not, and as far as I could find, nobody had checked. Compact models built for modest hardware are rarely tested under this kind of damage, and I found no comparison of two of them under compression and resolution loss together, with and without training on degraded images.
+A pathologist can usually work around a blurry image. A classifier trained on clean scans may not. Earlier studies have looked at how image corruption and compression affect pathology classifiers (see the table below), so this project does not claim to open the topic. It asks a narrower question: for two compact architectures on one prostate patch-classification task, what do JPEG compression and resolution loss do, with and without training on degraded images?
 
 So I asked the question early, while the choices are still open. What do compression and resolution loss do to compact classifiers, and which model and training approach holds up best? The answer here comes from public data, a controlled comparison of two architectures, and a test bench anyone can use to check their own model the same way.
 
@@ -18,17 +18,20 @@ Short version: ShuffleNet trained on degraded images barely notices the damage. 
 
 ## Why this question
 
-Prostate cancer is the second most commonly diagnosed cancer in men worldwide and the fifth leading cause of cancer death among them (Bray et al., 2024). Men of African descent tend to present with more aggressive disease and die from it at higher rates (Rebbeck et al., 2013). In a study across three referral hospitals in Kigali, 85% of the confirmed cancer patients were already at an advanced stage when diagnosed (Nzeyimana et al., 2021). The cases are there. Diagnosis is what's slow.
+Prostate cancer is the second most commonly diagnosed cancer in men worldwide and the fifth leading cause of cancer death among them (Bray et al., 2024). Men of African descent tend to present with more aggressive disease and die from it at higher rates (Rebbeck et al., 2013). Nzeyimana et al. (2021) looked at how advanced prostate cancer is diagnosed at the community level in Rwanda. The cases are there. Diagnosis is what's slow.
 
-Some earlier work has looked at how degraded images affect automated pathology tools:
+Earlier work has looked at how degraded images affect automated pathology tools:
 
-| Study | What they did | What it left open |
-|-------|---------------|-------------------|
-| Doyle et al. (2010) | Classical handcrafted-feature classifier on prostate histology. Accuracy fell as JPEG compression increased. | Not deep learning. No resolution loss. |
-| Chen et al. (2020) | CNN for nuclei segmentation. Training on JPEG2000-compressed images partly recovered the lost accuracy. | One task, one compression type, no architecture comparison. |
-| Ji et al. (2026) | Lung tissue segmentation. MobileNetV3 handled JPEG2000 better than ResNet-18, ResNet-50 and a Transformer. | No resolution loss, no degradation-aware training, no ShuffleNetV2. |
+| Study | What they did | What it did not cover |
+|-------|---------------|-----------------------|
+| Doyle et al. (2010) | Assessed how JPEG2000 compression affects a computer-aided detection system for prostate carcinoma in histological sections. | Carcinoma detection, not Gleason grading. JPEG2000, not ordinary JPEG. No resolution loss or training on compressed images is described. |
+| Chen et al. (2020) | Three use cases (nuclei segmentation, lymph node metastasis segmentation, lymphocyte detection) under JPEG and JPEG2000. Adding JPEG2000-compressed images to training partly recovered the lost F-score for nuclei segmentation. | Training on compressed images was tried for one task only. No architecture comparison. Not prostate. |
+| Zhang et al. (2022) | Benchmarked 13 network architectures, including MobileNetV2 and ShuffleNet, under nine corruptions (including JPEG compression and pixelation) on PatchCamelyon and LocalTCT. Accuracy dropped sharply and confidence estimates were unreliable. | Not prostate Gleason grading. Corruptions were injected into validation images for evaluation, not used in training. |
+| Ji et al. (2026) | Lung tumour segmentation. MobileNetV3 handled JPEG2000 better than ResNet-18, ResNet-50 and a Transformer. | Models were trained on lossless images only. No resolution loss and no ShuffleNetV2. |
 
-That last paper is why MobileNetV3 is here. ShuffleNetV2 (Ma et al., 2018) is the second model because it was designed around measured inference speed on real devices, not just FLOP counts. It's about the same size as MobileNetV3-Small (around 2.3 million parameters at 1.0x width), so the comparison is fair. Nobody had checked whether the two hold up the same way under compression and downsampling, or whether degradation-aware training helps both of them.
+Zhang et al. rules out any claim that image-degradation benchmarking in pathology is unexplored, and this project does not make one. The reviewed studies do not establish how matched degradation-aware training affects these two compact architectures on this prostate patch-classification task under the selected JPEG and resolution conditions. That is the question tested here, on public data, and the results are paired estimates on a fixed test set. They do not establish clinical performance.
+
+Ji et al. is why MobileNetV3 is here. ShuffleNetV2 (Ma et al., 2018) is the second model because it was designed around measured inference speed on real devices, not just FLOP counts. With the four-class heads used here, the MobileNetV3-Small model has 1,521,956 parameters and the ShuffleNetV2-x1.0 model has 1,257,704, so they are of similar size.
 
 ## Why test this early
 
@@ -115,7 +118,7 @@ Question 1, does degradation-aware training help? Yes, for both architectures. M
 
 Question 2, what does it cost? Almost nothing on clean SICAPv2 (see above). On clean Zurich, the degraded models actually came out ahead.
 
-Question 3, does the benefit differ by architecture? It does, and not in the way I expected. SN-Deg is nearly flat across all nine conditions. It even scores slightly higher under the stress condition (0.548) than on clean Zurich (0.533), and that stress condition was held out of training. MN-Deg improves everywhere, including a big jump on clean Zurich images (0.578 vs 0.340). That suggests the augmentation also made MobileNet less sensitive to the change of dataset. But it still drops to 0.319 under the stress condition. Ji et al. found MobileNetV3 to be the most robust of the backbones they tested, but here ShuffleNetV2 held up better once resolution loss was involved.
+Question 3, does the benefit differ by architecture? It does, and not in the way I expected. SN-Deg is nearly flat across all nine conditions. It even scores slightly higher under the stress condition (0.548) than on clean Zurich (0.533), and that stress condition was held out of training. MN-Deg improves everywhere, including a big jump on clean Zurich images (0.578 vs 0.340). That suggests the augmentation also made MobileNet less sensitive to the change of dataset. But it still drops to 0.319 under the stress condition. Ji et al. found MobileNetV3 to be the most robust of the backbones they tested, but here ShuffleNetV2 held up better once resolution loss was involved. The task, tissue and compression differ between the two studies, and each architecture here has its own training recipe, so this is not a direct comparison.
 
 Question 4, which one would I take into a pilot first? SN-Deg. It has the best mean and the flattest curve.
 
@@ -320,12 +323,13 @@ Neither dataset is included here. Download them from their original sources and 
 
 - Bray, F., Laversanne, M., Sung, H., Ferlay, J., Siegel, R. L., Soerjomataram, I., & Jemal, A. (2024). Global cancer statistics 2022: GLOBOCAN estimates of incidence and mortality worldwide for 36 cancers in 185 countries. CA: A Cancer Journal for Clinicians, 74(3), 229-263.
 - Chen, Y., Janowczyk, A., & Madabhushi, A. (2020). Quantitative assessment of the effects of compression on deep learning in digital pathology image analysis. JCO Clinical Cancer Informatics, 4, 221-233.
-- Doyle, S., Monaco, J., Feldman, M., Tomaszewski, J., & Madabhushi, A. (2010). An active learning based classification strategy for the minority class problem: Application to histopathology annotation. IEEE International Symposium on Biomedical Imaging (ISBI).
-- Ji, S., Yook, H., Jung, S., & Choi, Y. (2026). Evaluating JPEG2000 compression effects on prediction accuracy and storage efficiency in lung cancer whole-slide images: A deep learning-based analysis. Diagnostic Pathology. https://doi.org/10.1186/s13000-026-01830-7
+- Doyle, S., Monaco, J., Madabhushi, A., Lindholm, S., Ljung, P., Ladic, L., Tomaszewski, J., & Feldman, M. (2010). Evaluation of effects of JPEG2000 compression on a computer-aided detection system for prostate cancer on digitized histopathology. 2010 IEEE International Symposium on Biomedical Imaging: From Nano to Macro (pp. 1313-1316). https://doi.org/10.1109/ISBI.2010.5490238
+- Ji, H., Yook, M., Jung, C. K., & Choi, I. Y. (2026). Evaluating JPEG2000 compression effects on prediction accuracy and storage efficiency in lung cancer whole-slide images: A deep learning-based analysis. Diagnostic Pathology. https://doi.org/10.1186/s13000-026-01830-7
 - Ma, N., Zhang, X., Zheng, H.-T., & Sun, J. (2018). ShuffleNet V2: Practical guidelines for efficient CNN architecture design. Proceedings of the European Conference on Computer Vision (ECCV), 116-131.
-- Manirakiza, A., Ngendahayo, L., et al. (2023). The use of VSee videoconferencing for live telepathology in Rwanda: A potential solution for resource-limited areas. Journal of Pathology Informatics.
+- Manirakiza, F., Niyoyita, J. P., Habanabakize, T., Ndagijimana, E., Surwumwe, J. B., & Rugwizangoga, B. (2023). The use of Vsee videoconferencing for live telepathology in Rwanda, a potential solution for resource-limited area. Digital Health, 9, 20552076231159184. https://doi.org/10.1177/20552076231159184
 - McHugh, K. (2020). A trainee abroad: One cytopathology fellow's experience at a teaching hospital in Rwanda. Lablogatory.
 - Mpunga, T., Tapela, N., Hedt-Gauthier, B. L., et al. (2016). Implementation and validation of telepathology triage at cancer referral center in rural Rwanda. Journal of Global Oncology, 2(2), 76-82.
-- Nzeyimana, F., et al. (2021). Diagnosis of advanced prostate cancer at the community level in Rwanda. International Urology and Nephrology.
+- Nzeyimana, I., Nyirimodoka, A., Ngendahayo, E., Bonane, A., Muhawenimana, E., Umurangwa, F., et al. (2021). Diagnosis of advanced prostate cancer at the community level in Rwanda. International Urology and Nephrology, 53(10), 1977.
 - Rebbeck, T. R., Devesa, S. S., Chang, B.-L., et al. (2013). Global patterns of prostate cancer incidence, aggressiveness, and mortality in men of African descent. Prostate Cancer, 2013, Article 560857.
 - Silva-Rodriguez, J., Colomer, A., Sales, M. A., Molina, R., & Naranjo, V. (2020). Going deeper through the Gleason scoring scale: An automatic end-to-end system for histology prostate grading and cribriform pattern detection. Computer Methods and Programs in Biomedicine, 195, 105637.
+- Zhang, Y., Sun, Y., Li, H., Zheng, S., Zhu, C., & Yang, L. (2022). Benchmarking the robustness of deep neural networks to common corruptions in digital pathology. Medical Image Computing and Computer Assisted Intervention (MICCAI 2022). https://doi.org/10.48550/arXiv.2206.14973
