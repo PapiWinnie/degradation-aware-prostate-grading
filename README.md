@@ -296,12 +296,13 @@ The size change depends on the patch, so the app does not list a fixed percentag
 
 These don't map one to one onto the notebook's conditions. The app scales relative to the uploaded image (0.5x and 0.25x) with Lanczos resampling. Training used fixed pixel targets (256, 128 and 64) on 512px patches with bilinear resampling. The app also has a JPEG 10 condition the models never saw. For a 512px patch, `res05` is roughly `res256` and `res025` is roughly `res128`, but the app won't reproduce the tables above exactly.
 
-## Known rough edges
+## Limitations
 
 - CORS is open to every origin (`allow_origins=["*"]`). That's fine on your own machine, but lock it down before deploying anywhere.
 - Without `VITE_API_URL` set, the frontend calls the deployed Railway API, not a local backend.
 - Every number in the results comes from a single seed.
 - The checkpoint upload box says `.pt`, but it accepts `.pt` and `.pth`. Either way, it needs a plain state dict.
+- A custom checkpoint has to fit MobileNetV3-Small or ShuffleNetV2-x1.0 with the same four-class head (a single linear layer, except MN-Deg, which has dropout in front of it) and the same 224px input. It can't load a different network such as EfficientNet, which would need a new architecture added to `model_utils.py`.
 
 ## Technical requirements
 
