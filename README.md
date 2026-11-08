@@ -171,7 +171,7 @@ The proposal promised more than I finished. This table shows where each item end
 | TensorFlow and Keras implementation | Changed | PyTorch instead, with timm for MobileNetV3 and torchvision for ShuffleNetV2 |
 | `/predict` endpoint for one image | Done, renamed | `POST /infer`. It returns file sizes but not processing time |
 | 50 epochs, cosine decay, matched hyperparameters | Changed | Up to 20 epochs after a 2-epoch head warm-up, with early stopping and ReduceLROnPlateau |
-| Backend tests | Done | 47 tests pass |
+| Backend tests | Done | 48 tests pass |
 
 ## Running the app
 
@@ -210,7 +210,7 @@ pytest -v
 pytest -m "not slow"            # skip tests that run the real checkpoints
 ```
 
-The suite in `app/backend/tests/` has 47 tests in three files:
+The suite in `app/backend/tests/` has 48 tests in three files:
 
 | File | Type | What it covers |
 |------|------|----------------|
