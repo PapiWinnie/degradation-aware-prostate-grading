@@ -21,7 +21,7 @@ export default function ResultsPanel({ result, imageURL, conditionLabel }) {
         <div className='flex flex-col'>
           <span className='font-bold text-xl text-[#191C1E]'>{result.top_confidence}% confidence</span>
           <span className='text-xs text-[#737686] mt-1 font-mono'>
-            Predicted Gleason grade · {result.model_used} · {conditionLabel}
+            Predicted Gleason grade · {result.model_used}{result.custom_checkpoint ? ' (custom weights)' : ''} · {conditionLabel}
           </span>
         </div>
       </div>

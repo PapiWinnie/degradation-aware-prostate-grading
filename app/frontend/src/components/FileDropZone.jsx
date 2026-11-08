@@ -1,8 +1,9 @@
 import { useRef } from 'react'
 import { ArrowUp } from 'lucide-react'
 
-// 'patch' is the large dashed drop area, 'compact' is the single-row picker
-export default function FileDropZone({ variant = 'patch', accept, file, placeholder, hint, onFile }) {
+// 'patch' is the large dashed drop area, 'compact' is the single-row picker.
+// 'onClear' (compact only) adds a Remove button once a file is chosen.
+export default function FileDropZone({ variant = 'patch', accept, file, placeholder, hint, onFile, onClear }) {
   const inputRef = useRef(null)
 
   // Without preventDefault on dragover and drop, the browser opens the file
@@ -10,6 +11,13 @@ export default function FileDropZone({ variant = 'patch', accept, file, placehol
   function handleDrop(e) {
     e.preventDefault()
     onFile(e.dataTransfer.files[0])
+  }
+
+  // Resetting the input lets the same file be picked again after removing it.
+  function clear(e) {
+    e.stopPropagation()
+    inputRef.current.value = ''
+    onClear()
   }
 
   return (
@@ -32,8 +40,15 @@ export default function FileDropZone({ variant = 'patch', accept, file, placehol
           onClick={() => inputRef.current.click()}
           className='flex justify-between items-center bg-white mt-3 px-4 py-3 rounded-xl border border-[#C3C6D7] hover:border-[#004AC6] transition-colors cursor-pointer'
         >
-          <span className='text-sm text-[#5b5e66]'>{file ? file.name : placeholder}</span>
-          <span className='text-[#004AC6] font-mono font-bold text-xs'>Browse</span>
+          <span className='text-sm text-[#5b5e66] truncate'>{file ? file.name : placeholder}</span>
+          {file && onClear ? (
+            <button type='button' onClick={clear}
+              className='text-[#004AC6] font-semibold text-xs ml-3 shrink-0 hover:underline focus-visible:outline-2 focus-visible:outline-[#004AC6]'>
+              Remove
+            </button>
+          ) : (
+            <span className='text-[#004AC6] font-semibold text-xs ml-3 shrink-0'>Browse</span>
+          )}
         </div>
       )}
       {/* The native input is hidden. Clicking the styled area opens it through the ref. */}

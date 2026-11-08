@@ -48,6 +48,11 @@ export default function App() {
       // can send a list instead of a string, so fall back to a generic message.
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
+        // The backend message for a bad checkpoint is a long PyTorch error, so
+        // show what went wrong and how to fix it instead.
+        if (res.status === 400 && String(body.detail).startsWith('Bad checkpoint')) {
+          throw new Error(`These weights do not fit the ${model} architecture, or the file is not a valid checkpoint. Choose the model the file was trained as, or remove it to use the built-in weights.`)
+        }
         throw new Error(typeof body.detail === 'string' ? body.detail : 'Inference failed')
       }
       setResult(await res.json())
@@ -63,7 +68,7 @@ export default function App() {
   const conditionLabel = CONDITIONS.find(c => c.id === condition)?.name
 
   return (
-    <div className='min-h-screen px-20 py-12 max-w-[900px] mx-auto'>
+    <div className='min-h-screen px-4 py-8 sm:px-20 sm:py-12 max-w-[900px] mx-auto'>
 
       <Header />
 
@@ -72,10 +77,15 @@ export default function App() {
         hint='PNG · JPG · 512 × 512 px recommended (square)' />
 
       <FileDropZone variant='compact' accept='.pt,.pth' file={ckptFile} onFile={setCkptFile}
-        placeholder='Upload custom model checkpoint (.pt)' />
+        onClear={() => setCkptFile(null)} placeholder='Use your own weights (.pt)' />
+      {ckptFile && (
+        <p className='mt-2 text-xs text-[#5b5e66]'>
+          Your file replaces the weights of the selected model. Pick the model it was trained as.
+        </p>
+      )}
 
-      <div className='flex gap-4 mt-6'>
-        <ModelSelector value={model} onChange={setModel} />
+      <div className='grid gap-4 mt-6 sm:grid-cols-2 items-start'>
+        <ModelSelector value={model} onChange={setModel} customWeights={!!ckptFile} />
         <ConditionSelector value={condition} onChange={setCondition} />
       </div>
 
@@ -86,7 +96,7 @@ export default function App() {
         {loading ? 'Running…' : 'Run inference'}
       </button>
 
-      {error && <p className='mt-4 text-sm text-red-600 font-mono'>{error}</p>}
+      {error && <p role='alert' className='mt-4 text-sm text-red-600'>{error}</p>}
 
       {result && <ResultsPanel result={result} imageURL={imageURL} conditionLabel={conditionLabel} />}
 

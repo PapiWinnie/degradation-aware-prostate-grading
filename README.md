@@ -236,7 +236,7 @@ G3 versus G4 is the hard boundary. Almost every model in this project loses most
 3. Pick a transmission condition.
 4. Click Run inference.
 
-You'll see the model's output label, a probability bar for each class, and the original and degraded images side by side with their file sizes. You can upload your own `.pth` checkpoint too. It just has to match the architecture and head shape of the selected model, or loading fails.
+You'll see the model's output label, a probability bar for each class, and the original and degraded images side by side with their file sizes. You can upload your own `.pt` or `.pth` checkpoint too. The selected model card only sets the architecture, and your file replaces its weights, so it has to match that architecture and head shape or loading fails. The selected card then shows a "Your weights" tag, the result is labelled "custom weights", and Remove returns to the built-in weights.
 
 ## API
 
