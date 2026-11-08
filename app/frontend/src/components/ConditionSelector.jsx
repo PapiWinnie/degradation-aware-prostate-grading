@@ -1,7 +1,8 @@
 import { CONDITIONS } from '../constants'
 
-// The dropdown and the list edit the same value. The list is there so users
-// can compare the size reduction of every condition at a glance.
+// The dropdown and the list edit the same value. The list lets users see all
+// conditions at once. The size change is not shown here because it depends on
+// the uploaded patch; the results panel reports it after a run.
 export default function ConditionSelector({ value, onChange }) {
   return (
     <div className='w-1/2 border border-[#C3C6D7] p-4 rounded-xl bg-white flex flex-col gap-3'>
@@ -19,7 +20,6 @@ export default function ConditionSelector({ value, onChange }) {
             }`}
           >
             <span className={i === 0 ? 'text-[#004AC6] font-semibold' : 'text-[#5b5e66]'}>{c.name}</span>
-            <span className='text-[#737686]'>{c.reduction}%</span>
           </li>
         ))}
       </ul>

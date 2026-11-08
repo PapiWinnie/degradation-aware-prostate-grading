@@ -3,6 +3,13 @@ import { GRADE_BG } from '../constants'
 // Shown only after a successful inference. 'imageURL' is the local preview of
 // the original upload, while the degraded image comes back from the API as base64.
 export default function ResultsPanel({ result, imageURL, conditionLabel }) {
+  // Size change of the transmitted image relative to the uploaded file, computed
+  // from this upload rather than a fixed figure. A minus sign means it got smaller.
+  const before = result.original_size_kb
+  const after  = result.degraded_size_kb
+  const change = before > 0 ? Math.round((after / before - 1) * 100) : null
+  const changeLabel = change === null ? '' : ` (${change > 0 ? '+' : change < 0 ? '−' : ''}${Math.abs(change)}%)`
+
   return (
     <div className='bg-white mt-6 border border-[#C3C6D7] rounded-xl p-6'>
 
@@ -18,6 +25,11 @@ export default function ResultsPanel({ result, imageURL, conditionLabel }) {
           </span>
         </div>
       </div>
+
+      {/* Size of the transmitted image against the uploaded file */}
+      <p className='font-mono text-xs text-[#737686] mb-6'>
+        File size · {before} KB to {after} KB{changeLabel} compared with the uploaded file
+      </p>
 
       {/* Probability bars */}
       <div className='flex flex-col gap-3'>

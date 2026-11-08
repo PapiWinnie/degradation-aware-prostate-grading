@@ -280,17 +280,19 @@ Head shapes have to match the saved weights exactly, so `MODEL_CONFIGS` in `mode
 
 ### Transmission conditions in the app
 
-| ID | What happens | Approx. size reduction |
-|----|--------------|------------------------|
-| `original` | lossless PNG | 0% |
-| `jpeg75` | JPEG quality 75 | 62% |
-| `res05` | half resolution | 71% |
-| `jpeg25` | JPEG quality 25 | 76% |
-| `res025` | quarter resolution | 79% |
-| `res05_jpeg50` | half resolution, then JPEG 50 | 82% |
-| `res025_jpeg50` | quarter resolution, then JPEG 50 | 86% |
-| `res025_jpeg25` | quarter resolution, then JPEG 25 | 88% |
-| `res025_jpeg10` | quarter resolution, then JPEG 10 | 92% |
+| ID | What happens |
+|----|--------------|
+| `original` | lossless PNG |
+| `jpeg75` | JPEG quality 75 |
+| `res05` | half resolution |
+| `jpeg25` | JPEG quality 25 |
+| `res025` | quarter resolution |
+| `res05_jpeg50` | half resolution, then JPEG 50 |
+| `res025_jpeg50` | quarter resolution, then JPEG 50 |
+| `res025_jpeg25` | quarter resolution, then JPEG 25 |
+| `res025_jpeg10` | quarter resolution, then JPEG 10 |
+
+The size change depends on the patch, so the app does not list a fixed percentage per condition. After a run, the result panel shows the uploaded file size, the size of the degraded image and the change between them (for example "534 KB to 71 KB (-87%)"). The comparison is against the file you uploaded, so a JPEG upload gives a smaller saving than a PNG upload. The Zurich size means quoted elsewhere in this README were measured on the notebook pipeline against the clean PNG, not on this app.
 
 These don't map one to one onto the notebook's conditions. The app scales relative to the uploaded image (0.5x and 0.25x) with Lanczos resampling. Training used fixed pixel targets (256, 128 and 64) on 512px patches with bilinear resampling. The app also has a JPEG 10 condition the models never saw. For a 512px patch, `res05` is roughly `res256` and `res025` is roughly `res128`, but the app won't reproduce the tables above exactly.
 

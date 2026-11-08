@@ -10,18 +10,18 @@ export const MODELS = [
   { name: 'SN-Deg',   description: 'ShuffleNet · degraded training', best: true },
 ]
 
-// Ids must match CONDITIONS in the backend. 'reduction' is the measured change
-// in file size compared with the lossless original, shown next to each option.
+// Ids must match CONDITIONS in the backend. File-size change is not stored
+// here because it depends on the uploaded patch; it is computed per result.
 export const CONDITIONS = [
-  { id: 'original',       name: 'Original (lossless)',    reduction: 0 },
-  { id: 'jpeg75',         name: 'JPEG Q=75',              reduction: -62 },
-  { id: 'res05',          name: 'Res ×0.5',               reduction: -71 },
-  { id: 'jpeg25',         name: 'JPEG Q=25',              reduction: -76 },
-  { id: 'res025',         name: 'Res ×0.25',              reduction: -79 },
-  { id: 'res05_jpeg50',   name: 'Res ×0.5 + JPEG Q=50',  reduction: -82 },
-  { id: 'res025_jpeg50',  name: 'Res ×0.25 + JPEG Q=50', reduction: -86 },
-  { id: 'res025_jpeg25',  name: 'Res ×0.25 + JPEG Q=25', reduction: -88.1 },
-  { id: 'res025_jpeg10',  name: 'Res ×0.25 + JPEG Q=10', reduction: -92 },
+  { id: 'original',       name: 'Original (lossless)' },
+  { id: 'jpeg75',         name: 'JPEG Q=75' },
+  { id: 'res05',          name: 'Res ×0.5' },
+  { id: 'jpeg25',         name: 'JPEG Q=25' },
+  { id: 'res025',         name: 'Res ×0.25' },
+  { id: 'res05_jpeg50',   name: 'Res ×0.5 + JPEG Q=50' },
+  { id: 'res025_jpeg50',  name: 'Res ×0.25 + JPEG Q=50' },
+  { id: 'res025_jpeg25',  name: 'Res ×0.25 + JPEG Q=25' },
+  { id: 'res025_jpeg10',  name: 'Res ×0.25 + JPEG Q=10' },
 ]
 
 // Full class strings are written out because Tailwind scans the source for
