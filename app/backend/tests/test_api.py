@@ -84,6 +84,13 @@ def test_infer_with_valid_custom_checkpoint(client, png_bytes):
     )
 
     assert response.status_code == 200
+    # The response says the weights came from the upload, so the UI can label them.
+    assert response.json()["custom_checkpoint"] is True
+
+
+def test_bundled_model_is_not_flagged_as_custom(client, png_bytes):
+    # Without an upload the result must not claim custom weights.
+    assert post_infer(client, png_bytes).json()["custom_checkpoint"] is False
 
 
 def test_unknown_model_is_rejected(client, png_bytes):

@@ -18,3 +18,6 @@ class InferenceResult(BaseModel):
     original_size_kb: float
     degraded_size_kb: float
     degraded_image_b64: str    # PNG of the degraded patch, base64 encoded
+    # True when the weights came from an uploaded checkpoint. model_used then
+    # names only the architecture that the file was loaded into.
+    custom_checkpoint: bool = False

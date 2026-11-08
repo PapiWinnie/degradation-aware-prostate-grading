@@ -117,4 +117,5 @@ async def infer(
         original_size_kb   = original_size_kb,
         degraded_size_kb   = degraded_size_kb,
         degraded_image_b64 = image_to_b64(degraded),
+        custom_checkpoint  = checkpoint is not None,
     )
