@@ -131,7 +131,7 @@ This is a summary. The notebook has the full details.
 - Patches are 512x512 from SICAPv2. They're resized to 224x224 for the network and normalized with the usual ImageNet stats.
 - The split is at patient level. The 15 validation patient IDs are hardcoded so they can't leak into training.
 - Training runs in two phases: 2 warmup epochs on the head only, then up to 20 epochs of full fine-tuning. Early stopping watches val macro F1 (patience 5), and the learning rate halves when progress stalls.
-- For degradation training, each sample gets a random condition from the training pool: jpeg75, jpeg50, jpeg25, res256, res128, res256_jpeg50 and res128_jpeg25. `stress_res64_jpeg25` is evaluation only.
+- For degradation training, each sample gets a random condition from the training pool of eight: clean (no degradation), jpeg75, jpeg50, jpeg25, res256, res128, res256_jpeg50 and res128_jpeg25. `stress_res64_jpeg25` is evaluation only.
 - Degradation is applied to the 512px source patch before resizing, so the model sees what a receiver would actually get. Resolution loss means shrinking to N pixels and scaling back up, which leaves the blur you'd expect.
 - The seed is fixed at 42, with one run per experiment. That's the biggest weakness of the study. A few seeds per config would make the ablation far more convincing.
 
