@@ -80,43 +80,61 @@ export default function App() {
   const conditionLabel = CONDITIONS.find(c => c.id === condition)?.name
 
   return (
-    <div className='min-h-screen px-4 py-8 sm:px-20 sm:py-12 max-w-[900px] mx-auto'>
+    <div className='min-h-screen px-4 py-8 sm:px-10 sm:py-12 max-w-[1100px] mx-auto'>
 
       <Header page={page} />
 
-      {/* The tool stays mounted and is only hidden, so the upload and result survive a visit to another page */}
-      <div className={showTool ? '' : 'hidden'}>
-      <FileDropZone accept='image/png,image/jpeg' file={imageFile} preview={imageURL} onFile={pickImage}
-        placeholder='Drop tissue patch here or click to browse'
-        hint='PNG · JPG · 512 × 512 px recommended (square)' />
+      {/* The tool stays mounted and is only hidden, so the upload and result survive a visit to another page.
+          Inputs on the left, result on the right, so the result is visible without scrolling on a wide screen. */}
+      <div className={showTool ? 'grid gap-6 lg:grid-cols-2 items-start' : 'hidden'}>
 
-      <FileDropZone variant='compact' accept='.pt,.pth' file={ckptFile} onFile={setCkptFile}
-        onClear={() => setCkptFile(null)} placeholder='Use your own weights (.pt)' />
-      {ckptFile && (
-        <p className='mt-2 text-xs text-[#5A5266]'>
-          Your file replaces the weights of the selected model. Pick the model it was trained as.
-        </p>
-      )}
+        <div className='bg-white border border-[#F0C9DC] rounded-2xl p-5 flex flex-col gap-6'>
+          <div>
+            <p className='text-sm font-semibold text-[#191C1E] mb-2'>1. Upload a tissue patch</p>
+            <FileDropZone accept='image/png,image/jpeg' file={imageFile} preview={imageURL} onFile={pickImage}
+              placeholder='Drop tissue patch here or click to browse'
+              hint='PNG · JPG · 512 × 512 px recommended (square)' />
+          </div>
 
-      <div className='grid gap-4 mt-6 sm:grid-cols-2 items-start'>
-        <ModelSelector value={model} onChange={setModel} customWeights={!!ckptFile} />
-        <ConditionSelector value={condition} onChange={setCondition} />
+          <ModelSelector value={model} onChange={setModel} customWeights={!!ckptFile} />
+          <ConditionSelector value={condition} onChange={setCondition} />
+
+          {/* Rarely needed, so it stays closed until someone asks for it */}
+          <details>
+            <summary className='cursor-pointer text-xs font-semibold text-[#A12F77]'>
+              {ckptFile ? `Your weights: ${ckptFile.name}` : 'Advanced: use your own weights'}
+            </summary>
+            <FileDropZone variant='compact' accept='.pt,.pth' file={ckptFile} onFile={setCkptFile}
+              onClear={() => setCkptFile(null)} placeholder='Choose a .pt file' />
+            <p className='mt-2 text-xs text-[#5A5266]'>
+              Your file replaces the weights of the selected model. Pick the model it was trained as.
+            </p>
+          </details>
+
+          {/* Disabled until an image is chosen and while a request is running, to avoid double submits */}
+          <button onClick={runInference} disabled={loading || !imageFile}
+            className='w-full bg-[#C0408C] hover:bg-[#A12F77] disabled:opacity-40 disabled:cursor-not-allowed transition-colors py-4 rounded-xl text-white font-mono font-bold'
+          >
+            {loading ? <span className='loading loading-spinner loading-sm' aria-label='Running'></span> : 'Run inference'}
+          </button>
+
+          {error && <p role='alert' className='text-sm text-red-600'>{error}</p>}
+        </div>
+
+        <div>
+          {result
+            ? <ResultsPanel result={result} imageURL={imageURL} conditionLabel={conditionLabel} />
+            : <div className='hidden lg:flex items-center justify-center min-h-80 border-2 border-dashed border-[#F0C9DC] rounded-2xl text-sm text-[#6B6577]'>
+                Your result will appear here
+              </div>}
+        </div>
       </div>
 
-      {/* Disabled until an image is chosen and while a request is running, to avoid double submits */}
-      <button onClick={runInference} disabled={loading || !imageFile}
-        className='w-full bg-[#C0408C] hover:bg-[#A12F77] disabled:opacity-40 disabled:cursor-not-allowed transition-colors py-4 rounded-xl text-white font-mono font-bold mt-6'
-      >
-        {loading ? <span className='loading loading-spinner loading-sm' aria-label='Running'></span> : 'Run inference'}
-      </button>
-
-      {error && <p role='alert' className='mt-4 text-sm text-red-600'>{error}</p>}
-
-      {result && <ResultsPanel result={result} imageURL={imageURL} conditionLabel={conditionLabel} />}
+      {/* About and Findings are text pages, so they keep a narrow reading width */}
+      <div className='max-w-2xl'>
+        {page === 'about' && <About />}
+        {page === 'findings' && <Findings />}
       </div>
-
-      {page === 'about' && <About />}
-      {page === 'findings' && <Findings />}
 
     </div>
   )

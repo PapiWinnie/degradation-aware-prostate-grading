@@ -5,13 +5,10 @@ import { MODELS } from '../constants'
 // the selected card, so that card only sets the architecture.
 export default function ModelSelector({ value, onChange, customWeights = false }) {
   return (
-    <div className='border border-[#F0C9DC] p-4 rounded-xl bg-white'>
-      <p className='text-sm font-semibold text-[#191C1E] mb-1'>Model</p>
-      <p className='text-xs text-[#5A5266] mb-3'>
-        The two networks are MobileNet and ShuffleNet. Models marked clean saw only clean images in
-        training, and the others also saw compressed and shrunk ones. Not sure? Keep SN-Deg.
-      </p>
-      <div className='grid grid-cols-2 gap-3'>
+    <div>
+      <p className='text-sm font-semibold text-[#191C1E] mb-1'>2. Choose a model</p>
+      <p className='text-xs text-[#5A5266] mb-3'>Not sure? Keep SN-Deg. MN is MobileNet, SN is ShuffleNet.</p>
+      <div className='grid grid-cols-2 gap-2'>
         {MODELS.map((m) => {
           const selected = value === m.name
           return (
@@ -35,7 +32,7 @@ export default function ModelSelector({ value, onChange, customWeights = false }
                 )}
               </div>
               <input type='radio' name='model' value={m.name} checked={selected}
-                     onChange={() => onChange(m.name)} className='accent-[#C0408C] mt-0.5' />
+                     onChange={() => onChange(m.name)} className='radio radio-sm mt-0.5 text-[#C0408C]' />
             </label>
           )
         })}

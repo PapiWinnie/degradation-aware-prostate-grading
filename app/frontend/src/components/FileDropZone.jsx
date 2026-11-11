@@ -28,10 +28,10 @@ export default function FileDropZone({ variant = 'patch', accept, file, placehol
           onClick={() => inputRef.current.click()}
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
-          className='border-2 border-dashed border-[#F0C9DC] flex flex-col gap-2 items-center justify-center p-14 bg-white rounded-2xl hover:border-[#C0408C] hover:bg-[#FBE3F0] cursor-pointer transition-colors'
+          className='border-2 border-dashed border-[#F0C9DC] flex flex-col gap-2 items-center justify-center p-8 bg-white rounded-xl hover:border-[#C0408C] hover:bg-[#FBE3F0] cursor-pointer transition-colors'
         >
           {preview ? (
-            <img src={preview} alt='Uploaded tissue patch' className='h-40 w-40 object-cover rounded-lg border border-[#F0C9DC]' />
+            <img src={preview} alt='Uploaded tissue patch' className='h-32 w-32 object-cover rounded-lg border border-[#F0C9DC]' />
           ) : (
             <div className='border border-[#F0C9DC] p-3 rounded-full'>
               <ArrowUp className='text-[#A12F77]' size={20} />
