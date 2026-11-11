@@ -4,25 +4,25 @@ export const API = import.meta.env.VITE_API_URL || 'https://degradation-aware-pr
 // Must match the keys of MODEL_REGISTRY in the backend. 'best' marks the winner
 // of the experiments and shows the badge in the selector.
 export const MODELS = [
-  { name: 'MN-Clean', description: 'MobileNetV3 · clean training' },
-  { name: 'MN-Deg',   description: 'MobileNetV3 · degraded training' },
-  { name: 'SN-Clean', description: 'ShuffleNet · clean training' },
-  { name: 'SN-Deg',   description: 'ShuffleNet · degraded training', best: true },
+  { name: 'MN-Clean', description: 'MobileNet, trained on clean images only' },
+  { name: 'MN-Deg',   description: 'MobileNet, also trained on compressed and shrunk images' },
+  { name: 'SN-Clean', description: 'ShuffleNet, trained on clean images only' },
+  { name: 'SN-Deg',   description: 'ShuffleNet, also trained on compressed and shrunk images', best: true },
 ]
 
 // Ids must match CONDITIONS in the backend. 'detail' says in plain words what
 // the condition does. File-size change is not stored here because it depends on
 // the uploaded patch; it is computed per result.
 export const CONDITIONS = [
-  { id: 'original',       name: 'Original (lossless)',   detail: 'No degradation. The patch is sent as a lossless PNG.' },
-  { id: 'jpeg75',         name: 'JPEG Q=75',             detail: 'JPEG compression at quality 75, full resolution.' },
-  { id: 'res05',          name: 'Res ×0.5',              detail: 'Half the width and height, no JPEG.' },
-  { id: 'jpeg25',         name: 'JPEG Q=25',             detail: 'JPEG compression at quality 25, full resolution.' },
-  { id: 'res025',         name: 'Res ×0.25',             detail: 'A quarter of the width and height, no JPEG.' },
-  { id: 'res05_jpeg50',   name: 'Res ×0.5 + JPEG Q=50',  detail: 'Half resolution, then JPEG at quality 50.' },
-  { id: 'res025_jpeg50',  name: 'Res ×0.25 + JPEG Q=50', detail: 'Quarter resolution, then JPEG at quality 50.' },
-  { id: 'res025_jpeg25',  name: 'Res ×0.25 + JPEG Q=25', detail: 'Quarter resolution, then JPEG at quality 25.' },
-  { id: 'res025_jpeg10',  name: 'Res ×0.25 + JPEG Q=10', detail: 'Quarter resolution, then JPEG at quality 10. The models never saw this one in training.' },
+  { id: 'original',       name: 'Original (lossless)',   detail: 'The picture is sent exactly as it is, with no quality lost.' },
+  { id: 'jpeg75',         name: 'JPEG Q=75',             detail: 'Lightly compressed. The picture looks almost the same, but the file is smaller.' },
+  { id: 'res05',          name: 'Res ×0.5',              detail: 'Shrunk to half its width and height.' },
+  { id: 'jpeg25',         name: 'JPEG Q=25',             detail: 'Heavily compressed. The file is small, but the picture looks blocky and blurred.' },
+  { id: 'res025',         name: 'Res ×0.25',             detail: 'Shrunk to a quarter of its width and height, so fine detail is lost.' },
+  { id: 'res05_jpeg50',   name: 'Res ×0.5 + JPEG Q=50',  detail: 'Shrunk to half size, then compressed.' },
+  { id: 'res025_jpeg50',  name: 'Res ×0.25 + JPEG Q=50', detail: 'Shrunk to a quarter size, then compressed.' },
+  { id: 'res025_jpeg25',  name: 'Res ×0.25 + JPEG Q=25', detail: 'Shrunk to a quarter size, then heavily compressed.' },
+  { id: 'res025_jpeg10',  name: 'Res ×0.25 + JPEG Q=10', detail: 'Shrunk to a quarter size, then very heavily compressed. The models never saw this setting during training.' },
 ]
 
 // Findings section. Mean macro F1 over the nine conditions on the Zurich test
@@ -37,19 +37,19 @@ export const FINDINGS_TABLE = [
 export const RESEARCH_QUESTIONS = [
   {
     q: 'Does degradation-aware training help?',
-    a: 'Yes, for both architectures. Mean macro F1 rose by +0.266 for MobileNetV3-Small and +0.144 for ShuffleNetV2, and both intervals excluded zero.',
+    a: 'Yes, for both networks. The average score across the nine conditions rose by +0.266 for MobileNet and +0.144 for ShuffleNet, and the gain was clear and not just noise from which tissue cores were tested.',
   },
   {
     q: 'What does it cost on clean images?',
-    a: 'No cost was measurable. On clean Zurich patches the change was +0.236 for MobileNetV3-Small and +0.016 for ShuffleNetV2, and the second interval includes zero.',
+    a: 'No cost was measurable. On clean test patches the score changed by +0.236 for MobileNet and +0.016 for ShuffleNet, and the ShuffleNet change could be noise.',
   },
   {
     q: 'Does the effect depend on the architecture?',
-    a: 'Yes. ShuffleNetV2 gained under resolution loss and changed little under JPEG alone. The training recipes also differed, so this conclusion is limited.',
+    a: 'Yes. ShuffleNet gained mostly when images were shrunk and changed little when they were only compressed. The two networks were also trained with different settings, so this conclusion is limited.',
   },
   {
     q: 'What is the relationship between size and performance?',
-    a: 'It depends on how the saving is made. SN-Deg kept macro F1 between 0.5333 and 0.6025 for payloads from 534.3 KB down to 1.0 KB, while the clean-trained models were not flat.',
+    a: 'It depends on how the file is made smaller. SN-Deg kept its score between 0.5333 and 0.6025 for files from 534.3 KB down to 1.0 KB, while the models trained on clean images only did not hold steady.',
   },
 ]
 

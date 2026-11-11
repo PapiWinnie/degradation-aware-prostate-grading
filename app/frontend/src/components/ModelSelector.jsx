@@ -6,7 +6,11 @@ import { MODELS } from '../constants'
 export default function ModelSelector({ value, onChange, customWeights = false }) {
   return (
     <div className='border border-[#C3C6D7] p-4 rounded-xl bg-white'>
-      <p className='text-sm font-semibold text-[#191C1E] mb-3'>Model</p>
+      <p className='text-sm font-semibold text-[#191C1E] mb-1'>Model</p>
+      <p className='text-xs text-[#5b5e66] mb-3'>
+        The two networks are MobileNet and ShuffleNet. Models marked clean saw only clean images in
+        training, and the others also saw compressed and shrunk ones. Not sure? Keep SN-Deg.
+      </p>
       <div className='grid grid-cols-2 gap-3'>
         {MODELS.map((m) => {
           const selected = value === m.name
@@ -26,7 +30,7 @@ export default function ModelSelector({ value, onChange, customWeights = false }
                 )}
                 {m.best && !(selected && customWeights) && (
                   <span className='mt-2 self-start border border-[#16A34A] text-[#16A34A] text-xs rounded-full px-2 py-0.5'>
-                    Best F1
+                    Best in our tests
                   </span>
                 )}
               </div>
