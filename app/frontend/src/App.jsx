@@ -93,7 +93,7 @@ export default function App() {
       <FileDropZone variant='compact' accept='.pt,.pth' file={ckptFile} onFile={setCkptFile}
         onClear={() => setCkptFile(null)} placeholder='Use your own weights (.pt)' />
       {ckptFile && (
-        <p className='mt-2 text-xs text-[#5b5e66]'>
+        <p className='mt-2 text-xs text-[#5A5266]'>
           Your file replaces the weights of the selected model. Pick the model it was trained as.
         </p>
       )}
@@ -105,7 +105,7 @@ export default function App() {
 
       {/* Disabled until an image is chosen and while a request is running, to avoid double submits */}
       <button onClick={runInference} disabled={loading || !imageFile}
-        className='w-full bg-[#004AC6] hover:bg-[#2563eb] disabled:opacity-40 disabled:cursor-not-allowed transition-colors py-4 rounded-xl text-white font-mono font-bold mt-6'
+        className='w-full bg-[#C0408C] hover:bg-[#A12F77] disabled:opacity-40 disabled:cursor-not-allowed transition-colors py-4 rounded-xl text-white font-mono font-bold mt-6'
       >
         {loading ? <span className='loading loading-spinner loading-sm' aria-label='Running'></span> : 'Run inference'}
       </button>

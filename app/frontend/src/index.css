@@ -3,14 +3,14 @@
 
 
 :root {
-  --color-surface: #F8F9FB;
-  --color-primary: #004AC6;
-  --color-primary-container: #2563EB;
+  --color-surface: #FDF7FA;
+  --color-primary: #C0408C;
+  --color-primary-container: #A12F77;
   --color-on-surface: #191C1E;
-  --color-secondary: #5B5E66;
-  --color-outline: #737686;
-  --color-border: #C3C6D7;
-  --color-surface-low: #F2F4F6;
+  --color-secondary: #5A5266;
+  --color-outline: #6B6577;
+  --color-border: #F0C9DC;
+  --color-surface-low: #FBE3F0;
 
   --color-nc: #16A34A;
   --color-g3: #D97706;

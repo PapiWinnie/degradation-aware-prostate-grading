@@ -28,31 +28,31 @@ export default function FileDropZone({ variant = 'patch', accept, file, placehol
           onClick={() => inputRef.current.click()}
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
-          className='border-2 border-dashed border-[#C3C6D7] flex flex-col gap-2 items-center justify-center p-14 bg-white rounded-2xl hover:border-[#004AC6] hover:bg-blue-50 cursor-pointer transition-colors'
+          className='border-2 border-dashed border-[#F0C9DC] flex flex-col gap-2 items-center justify-center p-14 bg-white rounded-2xl hover:border-[#C0408C] hover:bg-[#FBE3F0] cursor-pointer transition-colors'
         >
           {preview ? (
-            <img src={preview} alt='Uploaded tissue patch' className='h-40 w-40 object-cover rounded-lg border border-[#C3C6D7]' />
+            <img src={preview} alt='Uploaded tissue patch' className='h-40 w-40 object-cover rounded-lg border border-[#F0C9DC]' />
           ) : (
-            <div className='border border-[#C3C6D7] p-3 rounded-full'>
-              <ArrowUp className='text-[#004AC6]' size={20} />
+            <div className='border border-[#F0C9DC] p-3 rounded-full'>
+              <ArrowUp className='text-[#A12F77]' size={20} />
             </div>
           )}
           <p className='text-sm text-[#191C1E]'>{file ? file.name : placeholder}</p>
-          <p className='text-xs text-[#737686]'>{hint}</p>
+          <p className='text-xs text-[#6B6577]'>{hint}</p>
         </div>
       ) : (
         <div
           onClick={() => inputRef.current.click()}
-          className='flex justify-between items-center bg-white mt-3 px-4 py-3 rounded-xl border border-[#C3C6D7] hover:border-[#004AC6] transition-colors cursor-pointer'
+          className='flex justify-between items-center bg-white mt-3 px-4 py-3 rounded-xl border border-[#F0C9DC] hover:border-[#C0408C] transition-colors cursor-pointer'
         >
-          <span className='text-sm text-[#5b5e66] truncate'>{file ? file.name : placeholder}</span>
+          <span className='text-sm text-[#5A5266] truncate'>{file ? file.name : placeholder}</span>
           {file && onClear ? (
             <button type='button' onClick={clear}
-              className='text-[#004AC6] font-semibold text-xs ml-3 shrink-0 hover:underline focus-visible:outline-2 focus-visible:outline-[#004AC6]'>
+              className='text-[#A12F77] font-semibold text-xs ml-3 shrink-0 hover:underline focus-visible:outline-2 focus-visible:outline-[#C0408C]'>
               Remove
             </button>
           ) : (
-            <span className='text-[#004AC6] font-semibold text-xs ml-3 shrink-0'>Browse</span>
+            <span className='text-[#A12F77] font-semibold text-xs ml-3 shrink-0'>Browse</span>
           )}
         </div>
       )}

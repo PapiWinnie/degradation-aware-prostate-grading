@@ -3,7 +3,7 @@ export default function About() {
   return (
     <section>
       <h2 className='text-lg font-bold text-[#191C1E] mb-3'>About</h2>
-      <div className='flex flex-col gap-3 text-sm text-[#5b5e66]'>
+      <div className='flex flex-col gap-3 text-sm text-[#5A5266]'>
         <p>
           Pathology images are often compressed or shrunk before they are sent between labs.
           This tool shows what that does to a small image classifier.

@@ -7,7 +7,7 @@ export default function Findings() {
       <h2 className='text-lg font-bold text-[#191C1E] mb-3'>Findings</h2>
 
       <h3 className='text-sm font-semibold text-[#191C1E] mb-1'>Method</h3>
-      <p className='text-sm text-[#5b5e66]'>
+      <p className='text-sm text-[#5A5266]'>
         Two small image classifiers, MobileNetV3-Small and ShuffleNetV2-x1.0, were each trained twice
         on the public SICAPv2 prostate dataset: once on clean images and once with compressed and
         shrunk images mixed in. All four models were then tested on 3,055 images from 818 tissue
@@ -15,12 +15,12 @@ export default function Findings() {
       </p>
 
       <h3 className='text-sm font-semibold text-[#191C1E] mt-6 mb-2'>Average score across the nine conditions (macro F1, higher is better)</h3>
-      <table className='text-sm border border-[#C3C6D7] bg-white rounded-lg'>
+      <table className='text-sm border border-[#F0C9DC] bg-white rounded-lg'>
         <tbody>
           {FINDINGS_TABLE.map((r) => (
-            <tr key={r.model} className='border-b border-[#C3C6D7] last:border-b-0'>
+            <tr key={r.model} className='border-b border-[#F0C9DC] last:border-b-0'>
               <td className='px-4 py-2 font-mono font-bold text-[#191C1E]'>{r.model}</td>
-              <td className='px-4 py-2 font-mono text-[#5b5e66]'>{r.f1}</td>
+              <td className='px-4 py-2 font-mono text-[#5A5266]'>{r.f1}</td>
             </tr>
           ))}
         </tbody>
@@ -31,12 +31,12 @@ export default function Findings() {
         {RESEARCH_QUESTIONS.map((r) => (
           <div key={r.q}>
             <p className='font-semibold text-[#191C1E]'>{r.q}</p>
-            <p className='text-[#5b5e66]'>{r.a}</p>
+            <p className='text-[#5A5266]'>{r.a}</p>
           </div>
         ))}
       </div>
 
-      <p className='text-xs text-[#737686] mt-6'>
+      <p className='text-xs text-[#6B6577] mt-6'>
         Each model was trained only once, the compression is simulated, and the test images come from
         one collection. These are research findings, not evidence of clinical performance.
       </p>
