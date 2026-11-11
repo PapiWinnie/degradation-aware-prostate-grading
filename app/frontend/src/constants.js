@@ -53,6 +53,15 @@ export const RESEARCH_QUESTIONS = [
   },
 ]
 
+// Plain-words meaning of each label. The Gleason patterns describe how much the
+// gland structures in the tissue have broken down, from G3 (least) to G5 (most).
+export const GRADE_INFO = {
+  NC: 'Non-cancerous tissue. The structures look normal.',
+  G3: 'Cancer with Gleason pattern 3. The glands are still small and well formed. This is the least aggressive pattern here.',
+  G4: 'Cancer with Gleason pattern 4. The glands are poorly formed, fused or irregular. This is more aggressive.',
+  G5: 'Cancer with Gleason pattern 5. The glands have almost completely broken down into sheets or single cells. This is the most aggressive pattern.',
+}
+
 // Full class strings are written out because Tailwind scans the source for
 // them and would drop classes built by string concatenation.
 export const GRADE_BG = {
