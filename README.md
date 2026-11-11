@@ -220,7 +220,7 @@ The suite in `app/backend/tests/` has 48 tests in three files:
 
 ### Using it
 
-The app is a test bench for seeing how degradation changes a model's output. The label it shows is an experimental output, not a diagnosis. There are four labels:
+The app is a test bench for seeing how degradation changes a model's output. The label it shows is an experimental output, not a diagnosis. Below the tool, the page has an About section on the purpose of the tool and a Findings section with the method, the headline result and the answers to the four research questions. The tool stores no user data, so there is no login. There are four labels:
 
 | Label | Meaning |
 |-------|---------|

@@ -5,6 +5,8 @@ import FileDropZone from './components/FileDropZone'
 import ModelSelector from './components/ModelSelector'
 import ConditionSelector from './components/ConditionSelector'
 import ResultsPanel from './components/ResultsPanel'
+import About from './components/About'
+import Findings from './components/Findings'
 
 // Holds all the state and the one network call. The child components only
 // receive values and callbacks, so they stay simple and reusable.
@@ -99,6 +101,9 @@ export default function App() {
       {error && <p role='alert' className='mt-4 text-sm text-red-600'>{error}</p>}
 
       {result && <ResultsPanel result={result} imageURL={imageURL} conditionLabel={conditionLabel} />}
+
+      <About />
+      <Findings />
 
     </div>
   )
