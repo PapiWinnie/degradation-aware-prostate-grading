@@ -1,7 +1,7 @@
 // Purpose of the tool, in plain words.
 export default function About() {
   return (
-    <section id='about' className='mt-12 border-t border-[#C3C6D7] pt-8'>
+    <section>
       <h2 className='text-lg font-bold text-[#191C1E] mb-3'>About</h2>
       <div className='flex flex-col gap-3 text-sm text-[#5b5e66]'>
         <p>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { API, CONDITIONS } from './constants'
 import Header from './components/Header'
 import FileDropZone from './components/FileDropZone'
@@ -19,6 +19,16 @@ export default function App() {
   const [result,     setResult]     = useState(null)
   const [loading,    setLoading]    = useState(false)
   const [error,      setError]      = useState(null)
+
+  // The page comes from the URL hash (#about, #findings), so links and refresh
+  // work without a router. Anything else shows the tool.
+  const [page, setPage] = useState(location.hash.slice(1))
+  useEffect(() => {
+    const update = () => setPage(location.hash.slice(1))
+    window.addEventListener('hashchange', update)
+    return () => window.removeEventListener('hashchange', update)
+  }, [])
+  const showTool = page !== 'about' && page !== 'findings'
 
   // Called by both the drop and the file dialog. Resets the previous result so
   // old predictions never sit next to a new image.
@@ -72,9 +82,11 @@ export default function App() {
   return (
     <div className='min-h-screen px-4 py-8 sm:px-20 sm:py-12 max-w-[900px] mx-auto'>
 
-      <Header />
+      <Header page={page} />
 
-      <FileDropZone accept='image/png,image/jpeg' file={imageFile} onFile={pickImage}
+      {/* The tool stays mounted and is only hidden, so the upload and result survive a visit to another page */}
+      <div className={showTool ? '' : 'hidden'}>
+      <FileDropZone accept='image/png,image/jpeg' file={imageFile} preview={imageURL} onFile={pickImage}
         placeholder='Drop tissue patch here or click to browse'
         hint='PNG · JPG · 512 × 512 px recommended (square)' />
 
@@ -95,15 +107,16 @@ export default function App() {
       <button onClick={runInference} disabled={loading || !imageFile}
         className='w-full bg-[#004AC6] hover:bg-[#2563eb] disabled:opacity-40 disabled:cursor-not-allowed transition-colors py-4 rounded-xl text-white font-mono font-bold mt-6'
       >
-        {loading ? 'Running…' : 'Run inference'}
+        {loading ? <span className='loading loading-spinner loading-sm' aria-label='Running'></span> : 'Run inference'}
       </button>
 
       {error && <p role='alert' className='mt-4 text-sm text-red-600'>{error}</p>}
 
       {result && <ResultsPanel result={result} imageURL={imageURL} conditionLabel={conditionLabel} />}
+      </div>
 
-      <About />
-      <Findings />
+      {page === 'about' && <About />}
+      {page === 'findings' && <Findings />}
 
     </div>
   )

@@ -3,7 +3,8 @@ import { ArrowUp } from 'lucide-react'
 
 // 'patch' is the large dashed drop area, 'compact' is the single-row picker.
 // 'onClear' (compact only) adds a Remove button once a file is chosen.
-export default function FileDropZone({ variant = 'patch', accept, file, placeholder, hint, onFile, onClear }) {
+// 'preview' (patch only) is an image URL shown in place of the upload icon.
+export default function FileDropZone({ variant = 'patch', accept, file, placeholder, hint, preview, onFile, onClear }) {
   const inputRef = useRef(null)
 
   // Without preventDefault on dragover and drop, the browser opens the file
@@ -29,9 +30,13 @@ export default function FileDropZone({ variant = 'patch', accept, file, placehol
           onDrop={handleDrop}
           className='border-2 border-dashed border-[#C3C6D7] flex flex-col gap-2 items-center justify-center p-14 bg-white rounded-2xl hover:border-[#004AC6] hover:bg-blue-50 cursor-pointer transition-colors'
         >
-          <div className='border border-[#C3C6D7] p-3 rounded-full'>
-            <ArrowUp className='text-[#004AC6]' size={20} />
-          </div>
+          {preview ? (
+            <img src={preview} alt='Uploaded tissue patch' className='h-40 w-40 object-cover rounded-lg border border-[#C3C6D7]' />
+          ) : (
+            <div className='border border-[#C3C6D7] p-3 rounded-full'>
+              <ArrowUp className='text-[#004AC6]' size={20} />
+            </div>
+          )}
           <p className='text-sm text-[#191C1E]'>{file ? file.name : placeholder}</p>
           <p className='text-xs text-[#737686]'>{hint}</p>
         </div>
