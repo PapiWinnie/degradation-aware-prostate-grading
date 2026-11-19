@@ -25,6 +25,15 @@ export const CONDITIONS = [
   { id: 'res025_jpeg10',  name: 'Res ×0.25 + JPEG Q=10', detail: 'Shrunk to a quarter size, then very heavily compressed. The models never saw this setting during training.' },
 ]
 
+// The headline finding: shrinking does more damage than compression. Macro F1 of
+// ShuffleNet on the Zurich test set (JPEG Q=25 and a quarter of the size), copied
+// from the notebook outputs.
+export const RESOLUTION_BARS = [
+  { label: 'SN-Clean, JPEG Q=25',      f1: '0.5694' },
+  { label: 'SN-Clean, shrunk to a ¼',  f1: '0.3343' },
+  { label: 'SN-Deg, shrunk to a ¼',    f1: '0.5968' },
+]
+
 // Findings section. Mean macro F1 over the nine conditions on the Zurich test
 // set, copied from the notebook outputs.
 export const FINDINGS_TABLE = [
