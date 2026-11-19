@@ -189,6 +189,8 @@ pip install -r requirements.txt
 uvicorn main:app
 ```
 
+The API only accepts browser calls from the deployed frontend. To let the local frontend call it, set `ALLOWED_ORIGINS=http://localhost:5173` before starting it (PowerShell: `$env:ALLOWED_ORIGINS="http://localhost:5173"`).
+
 The API runs at http://localhost:8000. All four checkpoints load at startup, so the first request isn't slow. Everything runs on CPU.
 
 ### Frontend
@@ -199,7 +201,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. Without any configuration the frontend calls the deployed API. To use your local backend, create `app/frontend/.env` containing `VITE_API_URL=http://localhost:8000`.
+Open http://localhost:5173. The frontend calls the deployed API by default, but that API only accepts calls from the deployed frontend, so locally you need your own backend: create `app/frontend/.env` containing `VITE_API_URL=http://localhost:8000` and start the backend with `ALLOWED_ORIGINS=http://localhost:5173`.
 
 ### Running the tests
 
@@ -298,7 +300,7 @@ These don't map one to one onto the notebook's conditions. The app scales relati
 
 ## Limitations
 
-- CORS is open to every origin (`allow_origins=["*"]`). That's fine on your own machine, but lock it down before deploying anywhere.
+- CORS only allows the deployed frontend (`ALLOWED_ORIGINS` overrides it). This stops other websites from calling the API from a visitor's browser, but it is not authentication: anyone can still call the API directly, for example with `curl`.
 - Without `VITE_API_URL` set, the frontend calls the deployed Railway API, not a local backend.
 - Every number in the results comes from a single seed.
 - The checkpoint upload box says `.pt`, but it accepts `.pt` and `.pth`. Either way, it needs a plain state dict.

@@ -24,6 +24,22 @@ def post_infer(client, image_bytes, model_name="SN-Deg", condition_id="original"
     )
 
 
+def test_cors_allows_only_the_frontend(client):
+    # A browser may call the API only from the allowed frontend origin. Any other
+    # website gets no CORS header, so the browser blocks the response.
+    allowed = main.ALLOWED_ORIGINS[0]
+    assert client.get("/", headers={"Origin": allowed}).headers["access-control-allow-origin"] == allowed
+    assert "access-control-allow-origin" not in client.get("/", headers={"Origin": "https://example.com"}).headers
+
+
+def test_cors_preflight_from_another_origin_is_refused(client):
+    response = client.options(
+        "/infer",
+        headers={"Origin": "https://example.com", "Access-Control-Request-Method": "POST"},
+    )
+    assert response.status_code == 400
+
+
 def test_root_reports_ok(client):
     # Health check used by the deployment platform to know the app is up.
     assert client.get("/").json() == {"status": "ok"}

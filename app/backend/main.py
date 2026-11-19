@@ -1,5 +1,6 @@
 import io
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -30,14 +31,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="CompressPath API", version="0.1.0", lifespan=lifespan)
 
-# The frontend and the API run on different origins (for example ports 5173
-# and 8000 in development), so the browser blocks the calls unless the API
-# sends CORS headers. The wildcard is fine for a demo; a deployed version
-# should list the real frontend origin instead.
+# The frontend and the API run on different origins, so the browser blocks the
+# calls unless the API sends CORS headers. Only the deployed frontend is allowed.
+# To develop locally, set ALLOWED_ORIGINS to a comma-separated list, for example
+# ALLOWED_ORIGINS=http://localhost:5173
+FRONTEND_ORIGIN = "https://degradation-aware-prostate-grading.vercel.app"
+ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", FRONTEND_ORIGIN).split(",")]
 app.add_middleware(CORSMiddleware,
-allow_origins=["*"],
-allow_methods=["*"],
-allow_headers=["*"])
+    allow_origins=ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"])
 
 
 # Decoding can fail for any non-image file, so the failure is turned into a
