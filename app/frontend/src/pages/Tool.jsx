@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { API, CONDITIONS } from '../constants'
 import { GENERIC, TIMEOUT_MS, messageForBadImage, messageForNetworkError, messageForResponse } from '../errors'
 import FileDropZone from '../components/FileDropZone'
@@ -73,6 +74,10 @@ export default function Tool() {
           <FileDropZone accept='image/png,image/jpeg' file={imageFile} preview={imageURL} onFile={pickImage}
             placeholder='Drop tissue patch here or click to browse'
             hint='PNG · JPG · 512 × 512 px recommended (square)' />
+          <p className='mt-2 text-xs text-[#5A5266]'>
+            Do not upload images that identify a patient. Your image is processed in memory and not stored.
+            See the <Link to='/privacy' className='font-semibold text-[#A12F77] hover:underline'>privacy policy</Link>.
+          </p>
         </div>
 
         <ModelSelector value={model} onChange={setModel} customWeights={!!ckptFile} />

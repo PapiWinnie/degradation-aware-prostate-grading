@@ -50,6 +50,12 @@ export default function ResultsPanel({ result, imageURL, conditionLabel }) {
         </div>
       </div>
 
+      {/* The caveat sits right under the grade, where a reader would otherwise take it as a result */}
+      <p role='note' className='rounded-xl bg-[#FBE3F0] px-4 py-3 text-sm text-[#191C1E]'>
+        <span className='font-semibold'>Experimental output, not a diagnosis.</span> This is a research test bench and
+        must not be used for patient care.
+      </p>
+
       {/* 2. How sure the model is about that grade */}
       <div className={card}>
         <p className={label}>Confidence in this grade</p>
