@@ -132,7 +132,7 @@ def test_non_image_upload_returns_400(client):
     response = post_infer(client, b"definitely not an image")
 
     assert response.status_code == 400
-    assert "Cannot decode image" in response.json()["detail"]
+    assert "could not be read as an image" in response.json()["detail"]
 
 
 def test_empty_upload_returns_400(client):
@@ -158,6 +158,7 @@ def test_bad_checkpoint_returns_400(client, png_bytes):
 
     assert response.status_code == 400
     assert "Bad checkpoint" in response.json()["detail"]
+    assert "pickle" not in response.json()["detail"].lower()  # no loader internals shown to the user
 
 
 def test_missing_image_returns_422(client):
@@ -178,6 +179,7 @@ def test_inference_crash_returns_500_with_message(client, png_bytes, monkeypatch
 
     assert response.status_code == 500
     assert "Inference failed" in response.json()["detail"]
+    assert "boom" not in response.json()["detail"]  # the exception text stays in the log
 
 
 def test_single_inference_is_fast_enough(client, png_bytes):

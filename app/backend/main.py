@@ -48,8 +48,10 @@ app.add_middleware(CORSMiddleware,
 def open_image(data: bytes) -> Image.Image:
     try:
         return Image.open(io.BytesIO(data)).convert("RGB")
-    except Exception as e:
-        raise HTTPException(400, f"Cannot decode image: {e}")
+    except Exception:
+        # The library's own message names internal objects, so it is only logged.
+        logger.warning("Upload could not be decoded as an image", exc_info=True)
+        raise HTTPException(400, "That file could not be read as an image. Upload a PNG or JPEG.")
 
 
 # Routes
@@ -85,7 +87,7 @@ async def infer(
     # Read the upload and refuse oversized files before decoding them.
     raw = await image.read()
     if len(raw) > MAX_UPLOAD_BYTES:
-        raise HTTPException(413, f"Image larger than {MAX_UPLOAD_BYTES // (1024 * 1024)} MB")
+        raise HTTPException(413, f"That image is larger than {MAX_UPLOAD_BYTES // (1024 * 1024)} MB. Choose a smaller one.")
     original_size_kb = round(len(raw) / 1024, 1)
     pil_image = open_image(raw)
 
@@ -97,8 +99,10 @@ async def infer(
     if checkpoint:
         try:
             model = load_custom_checkpoint(model_name, await checkpoint.read())
-        except Exception as e:
-            raise HTTPException(400, f"Bad checkpoint: {e}")
+        except Exception:
+            # PyTorch's message can run to many lines, so it is only logged.
+            logger.warning("Custom checkpoint could not be loaded", exc_info=True)
+            raise HTTPException(400, "Bad checkpoint: these weights could not be loaded for this model.")
     else:
         model = load_model(model_name)
 
@@ -106,9 +110,10 @@ async def infer(
     # whole point of the experiment.
     try:
         probs = run_inference(model, degraded)
-    except Exception as e:
+    except Exception:
+        # The exception text is for the log, not for the user.
         logger.exception("Inference failed")
-        raise HTTPException(500, f"Inference failed: {e}")
+        raise HTTPException(500, "Inference failed. Please try again.")
     top = max(probs, key=lambda p: p["confidence"])
 
     return InferenceResult(
