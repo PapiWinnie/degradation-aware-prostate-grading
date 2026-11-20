@@ -43,15 +43,22 @@ export default function Playground() {
   const [sample,    setSample]    = useState(SAMPLES[0])
   const [condition, setCondition] = useState('res025')
   const [out,       setOut]       = useState(null)   // { url, kb, baseKb }
+  const [failed,    setFailed]    = useState(false)
 
   useEffect(() => {
     let cancelled = false
     let url
     async function run() {
-      const bitmap = await createImageBitmap(await (await fetch(sample.src)).blob())
-      const [base, blob] = await Promise.all([degrade(bitmap, SETTINGS.original), degrade(bitmap, SETTINGS[condition])])
-      url = URL.createObjectURL(blob)
-      if (!cancelled) setOut({ url, kb: blob.size / 1024, baseKb: base.size / 1024 })
+      setFailed(false)
+      try {
+        const bitmap = await createImageBitmap(await (await fetch(sample.src)).blob())
+        const [base, blob] = await Promise.all([degrade(bitmap, SETTINGS.original), degrade(bitmap, SETTINGS[condition])])
+        if (!base || !blob) throw new Error('The browser could not encode the picture')
+        url = URL.createObjectURL(blob)
+        if (!cancelled) setOut({ url, kb: blob.size / 1024, baseKb: base.size / 1024 })
+      } catch {
+        if (!cancelled) { setOut(null); setFailed(true) }
+      }
     }
     run()
     return () => { cancelled = true; if (url) URL.revokeObjectURL(url) }
@@ -101,6 +108,11 @@ export default function Playground() {
           </figcaption>
         </figure>
       </div>
+      {failed && (
+        <p role='alert' className='mt-3 text-sm text-red-600 text-center'>
+          We could not build this preview. Check your connection and pick the patch again.
+        </p>
+      )}
 
       <div className='mt-5 flex justify-center'>
         <Link to='/tool'

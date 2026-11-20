@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { API, CONDITIONS } from '../constants'
+import { GENERIC, TIMEOUT_MS, messageForBadImage, messageForNetworkError, messageForResponse } from '../errors'
 import FileDropZone from '../components/FileDropZone'
 import ModelSelector from '../components/ModelSelector'
 import ConditionSelector from '../components/ConditionSelector'
@@ -21,6 +22,9 @@ export default function Tool() {
   // old predictions never sit next to a new image.
   function pickImage(file) {
     if (!file) return
+    // A dropped file ignores the input's accept list, so check it here.
+    const problem = messageForBadImage(file)
+    if (problem) { setError(problem); return }
     // free the previous preview so repeated uploads don't leak memory
     if (imageURL) URL.revokeObjectURL(imageURL)
     setImageFile(file)
@@ -32,7 +36,8 @@ export default function Tool() {
   // Sends the patch, the chosen model and the condition to the backend as a
   // multipart form, because the image is binary.
   async function runInference() {
-    if (!imageFile) { setError('Upload a tissue patch first.'); return }
+    if (!imageFile) { setError('Choose a tissue patch first.'); return }
+    if (!navigator.onLine) { setError(messageForNetworkError()); return }
     setLoading(true); setError(null); setResult(null)
 
     const form = new FormData()
@@ -42,22 +47,14 @@ export default function Tool() {
     if (ckptFile) form.append('checkpoint', ckptFile)
 
     try {
-      const res = await fetch(`${API}/infer`, { method: 'POST', body: form })
-      // Error responses carry a readable message in 'detail'. Validation errors
-      // can send a list instead of a string, so fall back to a generic message.
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        // The backend message for a bad checkpoint is a long PyTorch error, so
-        // show what went wrong and how to fix it instead.
-        if (res.status === 400 && String(body.detail).startsWith('Bad checkpoint')) {
-          throw new Error(`These weights do not fit the ${model} architecture, or the file is not a valid checkpoint. Choose the model the file was trained as, or remove it to use the built-in weights.`)
-        }
-        throw new Error(typeof body.detail === 'string' ? body.detail : 'Inference failed')
-      }
-      setResult(await res.json())
+      const res = await fetch(`${API}/infer`, { method: 'POST', body: form, signal: AbortSignal.timeout(TIMEOUT_MS) })
+      if (!res.ok) { setError(await messageForResponse(res, model)); return }
+      const data = await res.json().catch(() => null)
+      if (!data) { setError(GENERIC); return }
+      setResult(data)
     } catch (e) {
-      // fetch rejects with a TypeError when the backend is unreachable
-      setError(e instanceof TypeError ? 'Cannot reach the server. Is the backend running?' : e.message)
+      // fetch only rejects when no answer came back: offline, server down, or too slow
+      setError(messageForNetworkError(e))
     } finally {
       setLoading(false)
     }
