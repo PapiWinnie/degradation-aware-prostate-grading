@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom'
 // Keep it in step with the backend (app/backend/main.py) if that behaviour changes.
 const CONTACT_NAME  = 'Winston Nji'
 const CONTACT_EMAIL = 'w.nji1@alustudent.com'
-const UPDATED       = '20 November 2026'
+const UPDATED       = '21 November 2026'
+const CC_BY_URL     = 'https://creativecommons.org/licenses/by/4.0/'
 
 const SECTIONS = [
   {
@@ -98,7 +99,14 @@ const SECTIONS = [
   {
     title: 'Sample images and credits',
     body: [
-      'The sample patches on this site come from the public SICAPv2 dataset (Silva-Rodriguez, J., Colomer, A., Sales, M. A., Molina, R., & Naranjo, V., 2020, Computer Methods and Programs in Biomedicine, 195, 105637), released under the Creative Commons Attribution 4.0 licence (CC BY 4.0).',
+      <>
+        The sample patches on this site come from the public SICAPv2 dataset (Silva-Rodriguez, J., Colomer, A., Sales,
+        M. A., Molina, R., & Naranjo, V., 2020, Computer Methods and Programs in Biomedicine, 195, 105637), released
+        under the Creative Commons Attribution 4.0 licence (
+        <a href={CC_BY_URL} target='_blank' rel='noopener noreferrer' className='font-semibold text-[#A12F77] hover:underline'>CC BY 4.0</a>
+        ). Changes: patches from the dataset were used for model training, and the site shows patches resized or
+        recompressed to simulate transmission.
+      </>,
     ],
   },
   {
@@ -129,7 +137,7 @@ export default function Privacy() {
               {s.list.map((i) => <li key={i}>{i}</li>)}
             </ul>
           )}
-          {s.body && s.body.map((p) => <p key={p} className='mt-2 text-sm text-[#5A5266]'>{p}</p>)}
+          {s.body && s.body.map((p, i) => <p key={i} className='mt-2 text-sm text-[#5A5266]'>{p}</p>)}
         </div>
       ))}
 

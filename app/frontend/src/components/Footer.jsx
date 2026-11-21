@@ -5,6 +5,7 @@ import { NavLink } from 'react-router-dom'
 // bottom of a long page does not have to scroll back up.
 const PAGES = [['/', 'Home'], ['/tool', 'Tool'], ['/findings', 'Findings']]
 const CONTACT_EMAIL = 'w.nji1@alustudent.com'
+const CC_BY_URL = 'https://creativecommons.org/licenses/by/4.0/'
 
 const heading = 'font-mono text-xs font-bold text-[#A12F77] mb-2'
 const link = 'inline-block py-1 text-sm text-[#5A5266] hover:text-[#A12F77] hover:underline'
@@ -48,7 +49,11 @@ export default function Footer() {
 
       <div className='mt-8 py-5 border-t border-[#F0C9DC] text-xs text-[#6B6577] flex flex-wrap justify-between gap-x-6 gap-y-2'>
         <p>A capstone project by Winston Nji, African Leadership University.</p>
-        <p>Sample patches from SICAPv2 (Silva-Rodriguez et al., 2020), licensed CC BY 4.0.</p>
+        <p>
+          Sample patches from SICAPv2 (Silva-Rodriguez et al., 2020), licensed{' '}
+          <a href={CC_BY_URL} target='_blank' rel='noopener noreferrer' className='underline hover:text-[#A12F77]'>CC BY 4.0</a>
+          ; patches used for model training.
+        </p>
       </div>
     </footer>
   )
