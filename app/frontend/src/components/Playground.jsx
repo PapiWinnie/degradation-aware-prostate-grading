@@ -6,17 +6,17 @@ import { CONDITIONS } from '../constants'
 // browser, so nothing is uploaded and the result is instant.
 
 // [resize factor, JPEG quality] for each condition id, the same values as the
-// backend. null skips that step.
+// backend and the notebook. null skips that step.
 const SETTINGS = {
-  original:      [null, null],
-  jpeg75:        [null, 75],
-  res05:         [0.5,  null],
-  jpeg25:        [null, 25],
-  res025:        [0.25, null],
-  res05_jpeg50:  [0.5,  50],
-  res025_jpeg50: [0.25, 50],
-  res025_jpeg25: [0.25, 25],
-  res025_jpeg10: [0.25, 10],
+  clean:               [null,  null],
+  jpeg75:              [null,  75],
+  jpeg50:              [null,  50],
+  jpeg25:              [null,  25],
+  res256:              [0.5,   null],
+  res128:              [0.25,  null],
+  res256_jpeg50:       [0.5,   50],
+  res128_jpeg25:       [0.25,  25],
+  stress_res64_jpeg25: [0.125, 25],
 }
 
 const SAMPLES = [
@@ -26,22 +26,36 @@ const SAMPLES = [
   { name: 'Grade 5',       src: '/samples/g5.png' },
 ]
 
-// Shrinks and/or JPEG-encodes the picture and returns the encoded file. Its size
-// is the data that would cross the network.
-function degrade(bitmap, [factor, quality]) {
+// Applies a condition in the same order as the notebook: shrink, enlarge back,
+// then JPEG encode. Returns the encoded file whose size is shown. For a resize-only
+// condition that is the lossless PNG of the shrunken picture, which a receiver can
+// enlarge to exactly this picture. The browser's own resampling is close to, but
+// not identical with, the bilinear resampling of the notebook and the API.
+function draw(source, width, height) {
   const canvas = document.createElement('canvas')
-  canvas.width  = Math.max(1, Math.round(bitmap.width  * (factor ?? 1)))
-  canvas.height = Math.max(1, Math.round(bitmap.height * (factor ?? 1)))
+  canvas.width  = width
+  canvas.height = height
   const ctx = canvas.getContext('2d')
   ctx.imageSmoothingQuality = 'high'
-  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  ctx.drawImage(source, 0, 0, width, height)
+  return canvas
+}
+
+function encode(canvas, quality) {
   return new Promise((resolve) =>
     canvas.toBlob(resolve, quality ? 'image/jpeg' : 'image/png', quality ? quality / 100 : undefined))
 }
 
+function degrade(bitmap, [factor, quality]) {
+  if (factor === null) return encode(draw(bitmap, bitmap.width, bitmap.height), quality)
+  const small = draw(bitmap, Math.max(1, Math.round(bitmap.width * factor)), Math.max(1, Math.round(bitmap.height * factor)))
+  if (quality === null) return encode(small, null)
+  return encode(draw(small, bitmap.width, bitmap.height), quality)
+}
+
 export default function Playground() {
   const [sample,    setSample]    = useState(SAMPLES[0])
-  const [condition, setCondition] = useState('res025')
+  const [condition, setCondition] = useState('res128')
   const [out,       setOut]       = useState(null)   // { url, kb, baseKb }
   const [failed,    setFailed]    = useState(false)
 
@@ -52,7 +66,7 @@ export default function Playground() {
       setFailed(false)
       try {
         const bitmap = await createImageBitmap(await (await fetch(sample.src)).blob())
-        const [base, blob] = await Promise.all([degrade(bitmap, SETTINGS.original), degrade(bitmap, SETTINGS[condition])])
+        const [base, blob] = await Promise.all([degrade(bitmap, SETTINGS.clean), degrade(bitmap, SETTINGS[condition])])
         if (!base || !blob) throw new Error('The browser could not encode the picture')
         url = URL.createObjectURL(blob)
         if (!cancelled) setOut({ url, kb: blob.size / 1024, baseKb: base.size / 1024 })

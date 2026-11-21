@@ -11,7 +11,7 @@ import ResultsPanel from '../components/ResultsPanel'
 // components only receive values and callbacks.
 export default function Tool() {
   const [model,      setModel]      = useState('SN-Deg')
-  const [condition,  setCondition]  = useState('original')
+  const [condition,  setCondition]  = useState('clean')
   const [imageFile,  setImageFile]  = useState(null)
   const [imageURL,   setImageURL]   = useState(null)   // local preview of the upload
   const [ckptFile,   setCkptFile]   = useState(null)

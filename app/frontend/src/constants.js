@@ -14,15 +14,15 @@ export const MODELS = [
 // the condition does. File-size change is not stored here because it depends on
 // the uploaded patch; it is computed per result.
 export const CONDITIONS = [
-  { id: 'original',       name: 'Original (lossless)',   detail: 'The picture is sent exactly as it is, with no quality lost.' },
-  { id: 'jpeg75',         name: 'JPEG Q=75',             detail: 'Lightly compressed. The picture looks almost the same, but the file is smaller.' },
-  { id: 'res05',          name: 'Res ×0.5',              detail: 'Shrunk to half its width and height.' },
-  { id: 'jpeg25',         name: 'JPEG Q=25',             detail: 'Heavily compressed. The file is small, but the picture looks blocky and blurred.' },
-  { id: 'res025',         name: 'Res ×0.25',             detail: 'Shrunk to a quarter of its width and height, so fine detail is lost.' },
-  { id: 'res05_jpeg50',   name: 'Res ×0.5 + JPEG Q=50',  detail: 'Shrunk to half size, then compressed.' },
-  { id: 'res025_jpeg50',  name: 'Res ×0.25 + JPEG Q=50', detail: 'Shrunk to a quarter size, then compressed.' },
-  { id: 'res025_jpeg25',  name: 'Res ×0.25 + JPEG Q=25', detail: 'Shrunk to a quarter size, then heavily compressed.' },
-  { id: 'res025_jpeg10',  name: 'Res ×0.25 + JPEG Q=10', detail: 'Shrunk to a quarter size, then very heavily compressed. The models never saw this setting during training.' },
+  { id: 'clean',               name: 'Original (lossless)',        detail: 'The picture is used exactly as it is, with no quality lost.' },
+  { id: 'jpeg75',              name: 'JPEG Q=75',                  detail: 'Lightly compressed. The picture looks almost the same, but the file is smaller.' },
+  { id: 'jpeg50',              name: 'JPEG Q=50',                  detail: 'Moderately compressed. The file is much smaller and some blockiness appears.' },
+  { id: 'jpeg25',              name: 'JPEG Q=25',                  detail: 'Heavily compressed. The file is small, but the picture looks blocky and blurred.' },
+  { id: 'res256',              name: 'Res ×0.5',                   detail: 'Shrunk to half its width and height (256 px for a 512 px patch), then enlarged back.' },
+  { id: 'res128',              name: 'Res ×0.25',                  detail: 'Shrunk to a quarter of its width and height (128 px), then enlarged back, so fine detail is lost.' },
+  { id: 'res256_jpeg50',       name: 'Res ×0.5 + JPEG Q=50',       detail: 'Shrunk to half size, enlarged back, then compressed.' },
+  { id: 'res128_jpeg25',       name: 'Res ×0.25 + JPEG Q=25',      detail: 'Shrunk to a quarter size, enlarged back, then heavily compressed.' },
+  { id: 'stress_res64_jpeg25', name: 'Res ×0.125 + JPEG Q=25',     detail: 'Shrunk to an eighth of its width and height (64 px), enlarged back, then heavily compressed. The models never saw this setting during training.' },
 ]
 
 // The headline finding: shrinking does more damage than compression. Macro F1 of
@@ -58,7 +58,7 @@ export const RESEARCH_QUESTIONS = [
   },
   {
     q: 'What is the relationship between size and performance?',
-    a: 'It depends on how the file is made smaller. SN-Deg kept its score between 0.5333 and 0.6025 for files from 534.3 KB down to 1.0 KB, while the models trained on clean images only did not hold steady.',
+    a: 'It depends on how the file is made smaller. SN-Deg kept its score between 0.5333 and 0.6025 for images from 534.3 KB down to 9.7 KB, while the models trained on clean images only did not hold steady.',
   },
 ]
 

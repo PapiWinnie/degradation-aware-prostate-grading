@@ -15,7 +15,7 @@ from degradation import CONDITIONS
 from model_utils import CLASSES, MODEL_REGISTRY, load_model
 
 
-def post_infer(client, image_bytes, model_name="SN-Deg", condition_id="original", **files):
+def post_infer(client, image_bytes, model_name="SN-Deg", condition_id="clean", **files):
     # Send a multipart /infer request; extra files (e.g. checkpoint) are merged in.
     return client.post(
         "/infer",
@@ -59,20 +59,20 @@ def test_conditions_lists_all_conditions(client):
 def test_infer_returns_full_result(client, png_bytes):
     # Happy path: every field the UI displays must be present and consistent
     # with what was requested.
-    response = post_infer(client, png_bytes, "SN-Deg", "res025_jpeg25")
+    response = post_infer(client, png_bytes, "SN-Deg", "res128_jpeg25")
 
     assert response.status_code == 200
     body = response.json()
     assert body["predicted_grade"] in CLASSES
     assert body["model_used"] == "SN-Deg"
-    assert body["condition_used"] == "res025_jpeg25"
+    assert body["condition_used"] == "res128_jpeg25"
     assert len(body["probabilities"]) == len(CLASSES)
     assert body["degraded_size_kb"] > 0
     assert body["degraded_image_b64"]
 
 
 @pytest.mark.parametrize("model_name", list(MODEL_REGISTRY))
-@pytest.mark.parametrize("condition_id", ["original", "res025_jpeg10"])
+@pytest.mark.parametrize("condition_id", ["clean", "stress_res64_jpeg25"])
 def test_every_model_runs_under_clean_and_worst_condition(client, png_bytes, model_name, condition_id):
     # Compatibility matrix: all four models against the best and worst
     # conditions, to catch a model that only works for some inputs.
@@ -163,7 +163,7 @@ def test_bad_checkpoint_returns_400(client, png_bytes):
 
 def test_missing_image_returns_422(client):
     # FastAPI validates required fields before our code runs.
-    response = client.post("/infer", data={"model_name": "SN-Deg", "condition_id": "original"})
+    response = client.post("/infer", data={"model_name": "SN-Deg", "condition_id": "clean"})
 
     assert response.status_code == 422
 
