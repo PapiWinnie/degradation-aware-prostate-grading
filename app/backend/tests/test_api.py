@@ -161,6 +161,22 @@ def test_bad_checkpoint_returns_400(client, png_bytes):
     assert "pickle" not in response.json()["detail"].lower()  # no loader internals shown to the user
 
 
+def test_missing_bundled_weights_give_503_not_a_prediction(client, png_bytes, monkeypatch, tmp_path):
+    # Without its trained weights a model would still output probabilities, but
+    # from random weights. The API must refuse instead of returning a grade.
+    import model_utils
+    monkeypatch.setattr(model_utils, "CHECKPOINT_DIR", tmp_path)
+    load_model.cache_clear()
+    try:
+        response = post_infer(client, png_bytes, "SN-Deg", "clean")
+    finally:
+        load_model.cache_clear()
+
+    assert response.status_code == 503
+    assert "predicted_grade" not in response.json()
+    assert "not available" in response.json()["detail"]
+
+
 def test_missing_image_returns_422(client):
     # FastAPI validates required fields before our code runs.
     response = client.post("/infer", data={"model_name": "SN-Deg", "condition_id": "clean"})

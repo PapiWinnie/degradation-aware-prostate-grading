@@ -9,7 +9,7 @@ from PIL import Image
 
 from degradation import CONDITIONS, apply_degradation
 from model_utils import (
-    MODEL_REGISTRY, image_to_b64,
+    MODEL_REGISTRY, ModelUnavailableError, image_to_b64,
     load_custom_checkpoint, load_model, run_inference,
 )
 from schemas import GleasonProb, InferenceResult
@@ -22,6 +22,8 @@ MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 # Runs once when the server boots. Loading all four models here means the
 # first request does not pay the cost of reading the checkpoints from disk.
+# A missing checkpoint stops the start-up, so a server without its trained
+# weights is never put into service.
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     for name in MODEL_REGISTRY:
@@ -32,7 +34,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="CompressPath API", version="0.1.0", lifespan=lifespan)
 
 # The frontend and the API run on different origins, so the browser blocks the
-# calls unless the API sends CORS headers. Only the deployed frontend is allowed.
+# calls unless the API sends CORS headers. Only the deployed frontend is allowed,
+# which backs the privacy policy's Security statement that the service only
+# accepts browser requests that come from this website.
 # To develop locally, set ALLOWED_ORIGINS to a comma-separated list, for example
 # ALLOWED_ORIGINS=http://localhost:5173
 FRONTEND_ORIGIN = "https://degradation-aware-prostate-grading.vercel.app"
@@ -43,6 +47,9 @@ app.add_middleware(CORSMiddleware,
     allow_headers=["*"])
 
 
+# BytesIO lets Pillow decode the upload straight from memory, so no temporary
+# file is ever written. This is what the privacy policy means by "does not write
+# your image to disk" (What the site does not do, How long data is kept).
 # Decoding can fail for any non-image file, so the failure is turned into a
 # 400 with a message instead of an unhandled server error.
 def open_image(data: bytes) -> Image.Image:
@@ -104,7 +111,12 @@ async def infer(
             logger.warning("Custom checkpoint could not be loaded", exc_info=True)
             raise HTTPException(400, "Bad checkpoint: these weights could not be loaded for this model.")
     else:
-        model = load_model(model_name)
+        # A missing bundled checkpoint is a server fault, not a bad request. It is
+        # refused with a 503 so that random weights never produce a prediction.
+        try:
+            model = load_model(model_name)
+        except ModelUnavailableError:
+            raise HTTPException(503, "This model is not available right now. Please try another model later.")
 
     # The model sees the degraded image, never the original. That is the
     # whole point of the experiment.

@@ -18,6 +18,11 @@ CLASSES     = ["NC", "G3", "G4", "G5"]
 NUM_CLASSES = 4
 IMG_SIZE    = 224
 
+# Raised when a bundled checkpoint file is missing. The API turns it into a 503.
+class ModelUnavailableError(RuntimeError):
+  pass
+
+
 # The checkpoints folder sits next to this file.
 CHECKPOINT_DIR = Path(__file__).parent / "checkpoints"
 
@@ -112,14 +117,16 @@ def load_model(model_name: str) -> nn.Module:
   ckpt_path      = CHECKPOINT_DIR / filename
   model          = _build(arch, MODEL_CONFIGS[model_name])
 
-  if ckpt_path.exists():
-    # weights_only=True limits what pickle may load, which blocks code
-    # execution from a tampered file.
-    state = torch.load(ckpt_path, map_location="cpu", weights_only=True)
-    model.load_state_dict(state)
-  else:
-    # Random weights: inference still runs, but the results are meaningless.
-    logger.warning("Checkpoint %s not found; %s is using random weights", ckpt_path, model_name)
+  if not ckpt_path.exists():
+    # Without the trained weights the model would still produce probabilities,
+    # but they would come from random weights and mean nothing. Refuse instead.
+    logger.error("Checkpoint %s not found; %s cannot be served", ckpt_path, model_name)
+    raise ModelUnavailableError(f"Weights for {model_name} are not available")
+
+  # weights_only=True limits what pickle may load, which blocks code
+  # execution from a tampered file.
+  state = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+  model.load_state_dict(state)
 
   # eval() turns dropout off, so predictions are deterministic.
   return model.eval()
