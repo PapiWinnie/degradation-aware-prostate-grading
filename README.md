@@ -171,7 +171,7 @@ The proposal promised more than I finished. This table shows where each item end
 | TensorFlow and Keras implementation | Changed | PyTorch instead, with timm for MobileNetV3 and torchvision for ShuffleNetV2 |
 | `/predict` endpoint for one image | Done, renamed | `POST /infer`. It returns file sizes but not processing time |
 | 50 epochs, cosine decay, matched hyperparameters | Changed | Up to 20 epochs after a 2-epoch head warm-up, with early stopping and ReduceLROnPlateau |
-| Backend tests | Done | 48 tests pass |
+| Backend tests | Done | 63 tests pass |
 
 ## Running the app
 
@@ -212,13 +212,13 @@ pytest -v
 pytest -m "not slow"            # skip tests that run the real checkpoints
 ```
 
-The suite in `app/backend/tests/` has 48 tests in three files:
+The suite in `app/backend/tests/` has 63 tests in three files:
 
 | File | Type | What it covers |
 |------|------|----------------|
-| `test_degradation.py` | Unit | The nine transmission conditions: output shape, lossless baseline, payload size ordering, tiny and grayscale images |
+| `test_degradation.py` | Unit | The nine conditions: output identical to the notebook's pipeline, size rule, lossless baseline, payload size ordering, tiny and grayscale images |
 | `test_model_utils.py` | Unit | Model loading and caching, custom checkpoint round trip, rejection of corrupt or mismatched checkpoints, inference output |
-| `test_api.py` | Integration, error handling, performance | Every route, all models against the best and worst condition, 400/413/422/500 responses, and a warm-request latency check |
+| `test_api.py` | Integration, error handling, performance | Every route, all models against the best and worst condition, 400/413/422/500/503 responses (including refusing to predict when a model's weights are missing), and a warm-request latency check |
 
 ### Using it
 
@@ -255,7 +255,7 @@ You'll see the model's output label, a probability bar for each class, and the o
 |-------|----------|---------|
 | `image` | yes | a PNG or JPG file |
 | `model_name` | yes | `SN-Deg` |
-| `condition_id` | yes | `res025_jpeg25` |
+| `condition_id` | yes | `res128_jpeg25` |
 | `checkpoint` | no | a `.pth` state dict |
 
 Example:
@@ -264,10 +264,10 @@ Example:
 curl -X POST http://localhost:8000/infer \
   -F image=@patch.png \
   -F model_name=SN-Deg \
-  -F condition_id=res025_jpeg25
+  -F condition_id=res128_jpeg25
 ```
 
-The response includes `predicted_grade`, `top_confidence`, one `probabilities` entry per class (in percent), `model_used`, `condition_used`, `original_size_kb`, `degraded_size_kb` and `degraded_image_b64`, which is the degraded image as a base64 PNG.
+The response includes `predicted_grade`, `top_confidence`, one `probabilities` entry per class (in percent), `model_used`, `condition_used`, `original_size_kb`, `degraded_size_kb`, `degraded_image_b64` (the degraded image as a base64 PNG) and `custom_checkpoint` (true when the weights came from an upload).
 
 ### Models
 
@@ -278,25 +278,27 @@ The response includes `predicted_grade`, `top_confidence`, one `probabilities` e
 | SN-Clean | ShuffleNetV2-x1.0 (torchvision) | clean, Exp B config | `shufflenet_ExpB_clean.pth` |
 | SN-Deg | ShuffleNetV2-x1.0 (torchvision) | degraded, Exp B config | `shufflenet_degradation_degradation.pth` |
 
-Head shapes have to match the saved weights exactly, so `MODEL_CONFIGS` in `model_utils.py` spells them out per model. MN-Clean was saved with a plain linear head, while MN-Deg has dropout in front of its linear layer. That's why they get separate entries even though both use the Exp E config. If a checkpoint file is missing, the model quietly loads with random weights and gives meaningless predictions. It won't raise an error, so watch for that.
+Head shapes have to match the saved weights exactly, so `MODEL_CONFIGS` in `model_utils.py` spells them out per model. MN-Clean was saved with a plain linear head, while MN-Deg has dropout in front of its linear layer. That's why they get separate entries even though both use the Exp E config. If a bundled checkpoint file is missing, the server refuses to start, and a request for that model gets a 503. It never predicts with random weights.
 
-### Transmission conditions in the app
+### Conditions in the app
+
+The app applies the same nine conditions as the notebook, with the same ids and the same order of operations: shrink with bilinear resampling, enlarge back with bilinear resampling, then JPEG (subsampling 4:2:0, no optimisation). For a 512 by 512 patch the output is identical to the notebook's, which a test checks pixel for pixel. Other sizes are shrunk by the same factors (0.5, 0.25, 0.125) instead of fixed pixel targets.
 
 | ID | What happens |
 |----|--------------|
-| `original` | lossless PNG |
+| `clean` | lossless PNG, no degradation |
 | `jpeg75` | JPEG quality 75 |
-| `res05` | half resolution |
+| `jpeg50` | JPEG quality 50 |
 | `jpeg25` | JPEG quality 25 |
-| `res025` | quarter resolution |
-| `res05_jpeg50` | half resolution, then JPEG 50 |
-| `res025_jpeg50` | quarter resolution, then JPEG 50 |
-| `res025_jpeg25` | quarter resolution, then JPEG 25 |
-| `res025_jpeg10` | quarter resolution, then JPEG 10 |
+| `res256` | shrunk to 256 px, enlarged back |
+| `res128` | shrunk to 128 px, enlarged back |
+| `res256_jpeg50` | shrunk to 256 px, enlarged back, then JPEG 50 |
+| `res128_jpeg25` | shrunk to 128 px, enlarged back, then JPEG 25 |
+| `stress_res64_jpeg25` | shrunk to 64 px, enlarged back, then JPEG 25 (never seen in training) |
 
-The size change depends on the patch, so the app does not list a fixed percentage per condition. After a run, the result panel shows the uploaded file size, the size of the degraded image and the change between them (for example "534 KB to 71 KB (-87%)"). The comparison is against the file you uploaded, so a JPEG upload gives a smaller saving than a PNG upload. The Zurich size means quoted elsewhere in this README were measured on the notebook pipeline against the clean PNG, not on this app.
+`degraded_size_kb` is the size of the encoded bytes that decode to the image the model sees. For the JPEG conditions that is the JPEG of the enlarged image, so for the combined conditions it is larger than a JPEG of the shrunken image would be. For the resize-only conditions it is the lossless PNG of the shrunken image, which a receiver can enlarge to exactly the image the model sees. For `clean` it is the PNG. The result panel shows the uploaded file size, this size and the change between them (for example "534 KB to 71 KB (-87%)"). The comparison is against the file you uploaded, so a JPEG upload gives a smaller saving than a PNG upload.
 
-These don't map one to one onto the notebook's conditions. The app scales relative to the uploaded image (0.5x and 0.25x) with Lanczos resampling. Training used fixed pixel targets (256, 128 and 64) on 512px patches with bilinear resampling. The app also has a JPEG 10 condition the models never saw. For a 512px patch, `res05` is roughly `res256` and `res025` is roughly `res128`, but the app won't reproduce the tables above exactly.
+The two extra conditions that earlier versions of the app offered (`res025_jpeg50` and `res025_jpeg10`) were removed because they were not part of the experiment. The sample patches in `report/demo_patches_extreme/` were chosen with `res025_jpeg10` and have to be re-chosen with `stress_res64_jpeg25` before they are used as a demonstration.
 
 ## Limitations
 
