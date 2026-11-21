@@ -66,9 +66,10 @@ degradation-aware-prostate-grading/
       requirements-dev.txt   test dependencies
       tests/                 pytest suite: unit, integration and error-handling tests
       checkpoints/           the four trained .pth files (about 5 to 6 MB each)
-    frontend/                React 19 + Vite + Tailwind 4 single page app
-      src/App.jsx            state and the one API call
-      src/components/        Header, FileDropZone, ModelSelector, ConditionSelector, ResultsPanel
+    frontend/                React 19 + Vite + Tailwind 4 app with four pages (Home, Tool, Findings, Privacy)
+      src/App.jsx            the routes
+      src/pages/             Home, Tool, Findings, Privacy (Tool holds the state and the one API call)
+      src/components/        Header, Footer, FileDropZone, ModelSelector, ConditionSelector, ResultsPanel, ScoreBars, Playground
       src/constants.js       API address, model list and transmission conditions
 ```
 
