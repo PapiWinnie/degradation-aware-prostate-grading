@@ -324,6 +324,10 @@ To retrain the models you also need Google Colab with a GPU (the saved run used 
 
 Neither dataset is included here. Download them from their original sources and follow their licenses.
 
+## License
+
+The source code is released under the [MIT License](LICENSE). That licence covers the code only. The datasets, the sample patches in `app/frontend/public/samples/` and the trained checkpoints (which were trained on SICAPv2) are subject to the terms of their original sources.
+
 ## References
 
 - Bray, F., Laversanne, M., Sung, H., Ferlay, J., Siegel, R. L., Soerjomataram, I., & Jemal, A. (2024). Global cancer statistics 2022: GLOBOCAN estimates of incidence and mortality worldwide for 36 cancers in 185 countries. CA: A Cancer Journal for Clinicians, 74(3), 229-263.
